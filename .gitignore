@@ -1,0 +1,8 @@
+node_modules
+*.log
+config
+venv
+*pyc
+*swp
+*key
+*DS_STORE
