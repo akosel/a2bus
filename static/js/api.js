@@ -3,7 +3,7 @@
  *
  */
 var api = {};
-
+var base = '/api/v1.0';
 api.get = function(url, callback) {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url);
@@ -14,3 +14,21 @@ api.get = function(url, callback) {
   }
   xhr.send();
 }
+
+api.getNearbyStops = function(callback) {
+  var url = [base, 'nearbystops'].join('/');
+  var params = {
+    lat: userPosition.coords.latitude,
+    lng: userPosition.coords.longitude,
+    radius: 100,
+    units: 'm'
+  };
+  var paramList = _(params).map(function(value, key) {
+    return [key, value].join('=');
+  });
+  var paramString = paramList.join('&');
+  this.get([url, paramString].join('?'), function(xhr) {
+    var nearbyStops = xhr && _(xhr.response).isString() ? JSON.parse(xhr.response) : [];
+    callback(nearbyStops);
+  }); 
+};

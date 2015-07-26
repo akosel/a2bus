@@ -25,4 +25,54 @@
         <noscript>Whoops, looks like you don't have Javascript enabled. The site won't really work without it, so enable that if you can</noscript>
     </footer>
   </body>
+  <script src='/static/lib/underscore-min.js'></script>
+  <script src='/static/lib/socket.io.js'></script>
+  <script src='/static/js/api.js'></script>
+  <script>
+    window.onload = init();
+    function init() {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        window.userPosition = position;
+        api.getNearbyStops(function(stopKeys) { 
+          console.log(stopKeys); 
+          var parsed;
+          window.userRoutes = _(stopKeys).chain()
+            .map(function(stopKey) {
+              parsed = getParsedKey(stopKey);
+              return parsed.routeAbbr;
+            })
+            .uniq()
+            .value();
+        })
+      });
+      window.sender = new WebSocket('ws://' + location.host + '/send');
+  
+      var receiver = new WebSocket('ws://' + location.host + '/receive');
+      receiver.onmessage = function(message) {
+        var activeRoutes = message && message.data && _(message.data).isString() ? JSON.parse(message.data) : [];
+        var userActiveRoutes = _(activeRoutes).filter(function(route) {
+          return _(window.userRoutes).contains(route.routeAbbr);
+        });
+        console.log(activeRoutes, userActiveRoutes);
+      };
+    }
+
+    function getParsedKey(key) {
+      var keys = ['routeAbbr', 'stopID', 'directionID'];
+      var values = key.split('.');
+      return _(keys).object(values);
+    }
+
+    function getBusLocations(routes) {
+      return _(routes).filter(function(route) {
+        return route.routeAbbr
+      });
+    } 
+
+    navigator.geolocation.watchPosition(function(position) {
+      window.userPosition = position;
+      api.getNearbyStops(function(v) { console.log(v); })
+    });
+
+  </script>
 </html>
