@@ -12,6 +12,7 @@ import os
 import redis
 import api
 import gevent
+import s3
 import time
 
 #----------------------------------------------------------------------------#
@@ -61,9 +62,14 @@ class ChatBackend(object):
 
     def update(self):
         while True:
-            location_data = json.dumps(api.get_bus_locations())
+            location_data = api.get_bus_locations()
+            app.logger.debug('Updating')
             for client in self.clients:
-                gevent.spawn(self.send, client, location_data)
+                gevent.spawn(self.send, client, json.dumps(location_data))
+
+            if location_data:
+                s3.update_list('locations', location_data)
+                s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)
             time.sleep(10)
 
     def run(self):
@@ -80,27 +86,6 @@ class ChatBackend(object):
 chats = ChatBackend()
 chats.start()
 
-#db = SQLAlchemy(app)
-
-# Automatically tear down SQLAlchemy.
-'''
-@app.teardown_request
-def shutdown_session(exception=None):
-    db_session.remove()
-'''
-
-# Login required decorator.
-'''
-def login_required(test):
-    @wraps(test)
-    def wrap(*args, **kwargs):
-        if 'logged_in' in session:
-            return test(*args, **kwargs)
-        else:
-            flash('You need to login first.')
-            return redirect(url_for('login'))
-    return wrap
-'''
 #----------------------------------------------------------------------------#
 # Controllers.
 #----------------------------------------------------------------------------#

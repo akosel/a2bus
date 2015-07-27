@@ -1,14 +1,11 @@
 import redis
+import s3
 import requests
 
 BASE_URL = 'http://microapi.theride.org'
 
 LNG_KEY = 'longitude'
 LAT_KEY = 'lattitude'
-
-# XXX Testing
-APT_LNG = '-83.7704337'
-APT_LAT = '42.267575199999996'
 
 redis = redis.Redis()
 
