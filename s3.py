@@ -22,6 +22,10 @@ def get_list(key):
     k = get_key(key)
     return json.loads(k.get_contents_as_string())
 
+def get_file(key, filename):
+    k = get_key(key)
+    k.get_contents_to_filename(filename)
+
 def update_list(key, to_append):
     k = get_key(key)
     data = get_list(key)
