@@ -32,3 +32,11 @@ api.getNearbyStops = function(callback) {
     callback(nearbyStops);
   }); 
 };
+
+api.getLastLocations = function(callback) {
+  var url = [base, 'lastlocations'].join('/');
+  this.get(url, function(xhr) {
+    var lastLocations = xhr && _(xhr.response).isString() ? JSON.parse(xhr.response) : [];
+    callback(lastLocations);
+  }); 
+};

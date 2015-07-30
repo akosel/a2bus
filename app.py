@@ -50,6 +50,7 @@ class ChatBackend(object):
 
     def register(self, client):
         """Register a WebSocket connection for Redis updates."""
+        print 'Registering new client', client
         self.clients.append(client)
 
     def send(self, client, data):
@@ -63,14 +64,15 @@ class ChatBackend(object):
     def update(self):
         while True:
             location_data = api.get_bus_locations()
-            app.logger.debug('Updating')
+            print 'Updating', location_data
             for client in self.clients:
                 gevent.spawn(self.send, client, json.dumps(location_data))
 
             if location_data:
                 s3.update_list('locations', location_data)
                 s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)
-            time.sleep(10)
+                api.set_last_locations(location_data)
+            time.sleep(1)
 
     def run(self):
         """Listens for new messages in Redis, and sends them to clients."""
@@ -103,6 +105,10 @@ def get_nearby_stops():
     pieces = [request.args.get('lng', ''), request.args.get('lat', ''), request.args.get('radius', 100), request.args.get('units', 'm')]
     stops = api.get_nearest_stops('locations', *pieces)
     return json.dumps(stops)
+
+@app.route('/api/v1.0/lastlocations')
+def get_last_locations():
+    return json.dumps(api.get_last_locations())
 
 @app.route('/api/v1.0/location')
 def get_bus_locations():

@@ -2,57 +2,48 @@ body {
   font-family: "Gill Sans", Montserrat, Helvetica; }
 
 #map {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0; }
+  #map.visible {
+    display: block; }
 
-header {
+.config {
   z-index: 1;
-  color: black;
   position: fixed;
   top: 0;
   left: 0;
-  bottom: 0;
   right: 0;
+  height: 50px;
   background: rgba(0, 0, 0, 0.8); }
-
-.notifications input {
-  padding: 1em;
-  display: block;
-  width: 100%;
-  border: none;
-  border-bottom: 1px solid #ccc;
-  border-right: 1px solid #ccc; }
-
-.notifications input:not(:first-child) {
-  margin-top: .25em; }
-
-.notifications button {
-  padding: 1em;
-  border: none;
-  cursor: pointer;
-  margin-top: 1em;
-  width: 100%;
-  border-radius: 8px;
-  color: #666; }
-
-.notifications button:hover {
-  background-color: #ccc; }
-
-.notifications button.helper {
-  margin: 0;
-  padding: .5em;
-  background-color: #FFD127;
-  width: 100%;
-  margin-top: .25em; }
+  .config .nav-items {
+    list-style-type: none;
+    display: inline-block;
+    color: white;
+    margin: 0;
+    padding: 0; }
+    .config .nav-items li {
+      display: inline-block;
+      line-height: 50px;
+      padding: 0px 20px;
+      cursor: pointer; }
+      .config .nav-items li:hover {
+        background-color: white;
+        color: black; }
+    .config .nav-items.nav-items-left {
+      position: absolute;
+      left: 40px;
+      top: 0; }
+    .config .nav-items.nav-items-right {
+      position: absolute;
+      right: 40px;
+      top: 0; }
 
 .box {
   margin-top: 1em; }
-
-.config {
-  display: none; }
 
 main {
   font-size: 36px;
@@ -73,7 +64,9 @@ footer {
   bottom: 0; }
 
 main .info {
-  text-align: right; }
+  margin-top: 50px; }
+  main .info ul {
+    list-style-type: none; }
 
 article {
   box-sizing: border-box;
