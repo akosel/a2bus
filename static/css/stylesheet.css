@@ -2,14 +2,11 @@ body {
   font-family: "Gill Sans", Montserrat, Helvetica; }
 
 #map {
-  display: none;
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0; }
-  #map.visible {
-    display: block; }
 
 .config {
   z-index: 1;

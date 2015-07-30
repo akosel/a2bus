@@ -6,11 +6,11 @@
   </head>
   <body>
     <nav class="config">
-      <ul class='nav-items nav-items-left'>
+      <ul class="nav-items nav-items-left">
         <li>MENU</li>
       </ul> 
-      <ul class='nav-items nav-items-right'>
-        <li>MAP</li>
+      <ul class="nav-items nav-items-right">
+        <li id="map-toggle-handler">MAP</li>
       </ul> 
     </nav>
     <main>
@@ -32,8 +32,8 @@
         <noscript>Whoops, looks like you don't have Javascript enabled. The site won't really work without it, so enable that if you can</noscript>
     </footer>
   </body>
-  <script src='/static/lib/underscore-min.js'></script>
-  <script src='/static/js/api.js'></script>
+  <script src="/static/lib/underscore-min.js"></script>
+  <script src="/static/js/api.js"></script>
   <script src="/static/lib/react.js"></script>
   <script src="/static/lib/JSXTransformer.js"></script>
   <script type="text/jsx">
@@ -112,6 +112,7 @@
         return {
           map : null,
           lines: {},
+          show: false,
           markers : []
         };
       },
@@ -174,7 +175,8 @@
       render : function() {
         var style = {
           width: this.props.width,
-          height: this.props.height
+          height: this.props.height,
+          display: this.state.show ? 'block' : 'none'
         }
     
         return React.DOM.div({style:style})
@@ -227,6 +229,11 @@
           this.updateTransitLayer();
     
           if( this.props.points ) this.updateMarkers(this.props.points);
+
+          var $mapToggler = document.querySelector('#map-toggle-handler');
+          $mapToggler.addEventListener('click', function(event) {
+              this.setState({ show: !this.state.show });        
+          }.bind(this));
         }).bind(this);
     
         if (typeof google !== 'undefined') {
@@ -285,7 +292,6 @@
         });
       });
       window.sender = new WebSocket('ws://' + location.host + '/send');
-  
     }
 
     window.onload = init();
@@ -302,7 +308,7 @@
       return _(routes).filter(function(route) {
         return route.routeAbbr
       });
-    } 
+    }
 
     navigator.geolocation.watchPosition(function(position) {
       window.userPosition = position;
