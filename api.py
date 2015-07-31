@@ -68,6 +68,8 @@ def get_stop_details(stops):
     return [yaml.safe_load(stop) for stop in stops]
 
 def get_nearest_stops(key, lng, lat, radius, units, with_dist=False, with_coord=False, with_hash=False, sort=None):
+    if not redis.exists('locations'):
+        set_cache_stops()
     pieces = [key, lng, lat, radius, units]
 
     if with_dist:

@@ -20,7 +20,7 @@ api.getNearbyStops = function(callback) {
   var params = {
     lat: userPosition.coords.latitude,
     lng: userPosition.coords.longitude,
-    radius: 100,
+    radius: 500,
     units: 'm'
   };
   var paramList = _(params).map(function(value, key) {
@@ -37,6 +37,9 @@ api.getLastLocations = function(callback) {
   var url = [base, 'lastlocations'].join('/');
   this.get(url, function(xhr) {
     var lastLocations = xhr && _(xhr.response).isString() ? JSON.parse(xhr.response) : [];
+    if (typeof xhr.response === 'object') {
+       lastLocations = xhr.response;
+    }
     callback(lastLocations);
   }); 
 };

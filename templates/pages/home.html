@@ -1,6 +1,6 @@
 <!DOCTYPE 5>
-<html>                                                                                                 
-  <head>                                                                                               
+<html>
+  <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <link rel="stylesheet" href="/static/css/stylesheet.css"/>
   </head>
@@ -15,7 +15,7 @@
     </nav>
     <main>
       <div id="status">
-        <div class="info clearfix">                                                                               
+        <div class="info clearfix">
           <div class="adherence"></div>
           <div class="timestamp"></div>
           <div class="direction"></div>
@@ -43,18 +43,21 @@
       getInitialState: function() {
         return { data: [], slice: [] };
       },
+      updateActiveRoutes: function(activeRoutes) {
+        var userActiveRoutes = _(activeRoutes).filter(function(route) {
+          return _(window.userRoutes).contains(route.routeAbbr);
+        });
+        console.log('updating routes', activeRoutes, userActiveRoutes);
+        this.setState({ data: userActiveRoutes });
+      },
       componentDidMount: function() {
         console.log('Mounting status box');
         var receiver = new WebSocket('ws://' + location.host + '/receive');
         receiver.onmessage = function(status) {
           var activeRoutes = status && status.data && _(status.data).isString() ? JSON.parse(status.data) : [];
-          var userActiveRoutes = _(activeRoutes).filter(function(route) {
-            return _(window.userRoutes).contains(route.routeAbbr);
-          });
-          console.log(activeRoutes, userActiveRoutes);
-          this.setState({ data: userActiveRoutes });
+          this.updateActiveRoutes(activeRoutes);
         }.bind(this);
-        api.getLastLocations(receiver.onmessage)
+        api.getLastLocations(this.updateActiveRoutes)
       },
       render: function() {
         return (
