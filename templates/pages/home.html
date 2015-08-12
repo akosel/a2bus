@@ -40,7 +40,7 @@
       render: function() {
         return (
         <div id="status">
-            <h1>Status</h1>
+            <h4>Status</h4>
             <StatusList slice={this.state.data} />
           </div>
         );
@@ -255,7 +255,7 @@
                 <li>Menu</li>
               </ul> 
               <ul className="nav-items nav-items-right">
-                <li onClick={this.viewToggleClick} id="view-toggle-handler">{ this.state.activeView }</li>
+                <li onClick={this.viewToggleClick} id="view-toggle-handler">{ this.state.activeView === 'Map' ? 'Status' : 'Map' }</li>
               </ul> 
             </nav>
             <main>

@@ -1,7 +1,6 @@
+/* SASS VARIABLES */
 $font-stack: 'Gill Sans', Montserrat, Helvetica;
-
 $media-phone: "only screen and (max-width: 720px)";
-
 $nav-height: 50px;
 
 /* MIXINS */
@@ -21,6 +20,7 @@ $nav-height: 50px;
           transform: $transforms;
 }
 
+/* MAIN STYLES */
 body {
   font-family: $font-stack;
   margin: 0;
@@ -46,6 +46,7 @@ body {
   height: 100%;
   z-index: 1;
   @include transform(translate3d(0, -100%, 0));
+  @include transition(-webkit-transform ease 250ms);
   @include transition(transform ease 250ms);
 }
 
