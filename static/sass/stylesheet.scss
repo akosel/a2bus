@@ -3,19 +3,64 @@ $font-stack: 'Gill Sans', Montserrat, Helvetica;
 $media-phone: "only screen and (max-width: 720px)";
 
 $nav-height: 50px;
+
+/* MIXINS */
+@mixin transition($args...) {
+  -webkit-transition: $args;
+  -moz-transition: $args;
+  -ms-transition: $args;
+  -o-transition: $args;
+  transition: $args;
+}
+
+@mixin transform($transforms) {
+     -moz-transform: $transforms;
+       -o-transform: $transforms;
+      -ms-transform: $transforms;
+  -webkit-transform: $transforms;
+          transform: $transforms;
+}
+
 body {
   font-family: $font-stack;
+  margin: 0;
+  position: relative;
 }
-#map {
-  position: fixed;
+
+.status-box {
+  position: relative;
   top: 0;
   left: 0;
-  bottom: 0;
-  right: 0;
+  width: 1024px;
+  margin: 0 auto;
+  padding-top: $nav-height;
+  height: 100%;
+  @include transform(translate3d(0, -100%, 0));
+}
+
+.map-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  @include transform(translate3d(0, -100%, 0));
+  @include transition(transform ease 250ms);
+}
+
+.visible {
+  @include transform(translate3d(0, 0, 0));
+}
+
+.loading-text {
+  position: relative;
+  top: 50%;
+  text-align: center;
 }
 
 .config {
-  z-index: 1;
+  z-index: 2;
   position: fixed;
   top: 0;
   left: 0;
@@ -26,6 +71,7 @@ body {
     list-style-type: none;
     display: inline-block;
     color: white;
+    font-size: 18px;
     margin: 0;
     padding: 0;
     li {
@@ -99,69 +145,5 @@ article {
   @media #{$media-phone} {
     width: 300px;
     margin: -150px 0 0 -150px;
-  }
-}
-
-
-.rocket{
-  position:absolute;
-  top:30%;
-  left:20%;
-  width:60%;
-  height:60%;
-  background:url(/assets/img/rocket.png) no-repeat 50px center;
-
-  /* Chrome still requires the -webkit- prefix */
-  -webkit-animation:orbit 2s linear infinite;
-  animation:orbit 2s linear infinite;
-
-  transition:background-position 0.8s;
-}
-
-.circle {
-  border-radius: 50px;
-  width: 50px;
-  height: 50px;
-  display: none;
-}
-
-.circle:not(:first-child) {
-  margin-top: 30px;
-}
-
-.go {
-  background-color: #27AE60;
-  color: white;
-}
-
-.set {
-  background-color: #FFD127;
-  color: white;
-}
-
-.ready {
-  background-color: #F60;
-  color: white;
-}
-
-.clearfix {
-  overflow: auto;
-}
-
-@-webkit-keyframes orbit {
-  from {
-    -webkit-transform:rotate(0deg);}
-  to {
-    -webkit-transform:rotate(360deg);
-  }
-}
-
-@keyframes orbit {
-  from {
-    transform:rotate(0deg);
-    -webkit-transform:rotate(0deg);}
-  to {
-    transform:rotate(360deg);
-    -webkit-transform:rotate(360deg);
   }
 }

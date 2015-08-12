@@ -5,32 +5,7 @@
     <link rel="stylesheet" href="/static/css/stylesheet.css"/>
   </head>
   <body>
-    <nav class="config">
-      <ul class="nav-items nav-items-left">
-        <li>MENU</li>
-      </ul> 
-      <ul class="nav-items nav-items-right">
-        <li id="map-toggle-handler">MAP</li>
-      </ul> 
-    </nav>
-    <main>
-      <div id="status">
-        <div class="info clearfix">
-          <div class="adherence"></div>
-          <div class="timestamp"></div>
-          <div class="direction"></div>
-          <div class="news">
-            <p></p>
-          </div>
-        </div>
-      </div>
-      <div id="map">
-        <p></p>
-      </div>
-    </main>
-    <footer class="controls">
-        <noscript>Whoops, looks like you don't have Javascript enabled. The site won't really work without it, so enable that if you can</noscript>
-    </footer>
+    <h1 class="loading-text">Loading...</h1>
   </body>
   <script src="/static/lib/underscore-min.js"></script>
   <script src="/static/js/api.js"></script>
@@ -41,8 +16,9 @@
 
     var StatusBox = React.createClass({
       getInitialState: function() {
-        return { data: [], slice: [] };
+        return { data: [], slice: [], show: false };
       },
+
       updateActiveRoutes: function(activeRoutes) {
         var userActiveRoutes = _(activeRoutes).filter(function(route) {
           return _(window.userRoutes).contains(route.routeAbbr);
@@ -50,6 +26,7 @@
         console.log('updating routes', activeRoutes, userActiveRoutes);
         this.setState({ data: userActiveRoutes });
       },
+
       componentDidMount: function() {
         console.log('Mounting status box');
         var receiver = new WebSocket('ws://' + location.host + '/receive');
@@ -57,11 +34,13 @@
           var activeRoutes = status && status.data && _(status.data).isString() ? JSON.parse(status.data) : [];
           this.updateActiveRoutes(activeRoutes);
         }.bind(this);
-        api.getLastLocations(this.updateActiveRoutes)
+        api.getLastLocations(this.updateActiveRoutes);
       },
+
       render: function() {
         return (
-          <div className='status-box'>
+        <div id="status">
+            <h1>Status</h1>
             <StatusList slice={this.state.data} />
           </div>
         );
@@ -89,7 +68,7 @@
             <div className="info clearfix">
               <ul>
                 <li className="adherence">
-                  { this.props.routeInfo.adherence } 
+                  Late by: { this.props.routeInfo.adherence } 
                 </li>
                 <li className="timestamp">
                   { this.props.routeInfo.timestamp }
@@ -179,7 +158,6 @@
         var style = {
           width: this.props.width,
           height: this.props.height,
-          display: this.state.show ? 'block' : 'none'
         }
     
         return React.DOM.div({style:style})
@@ -196,17 +174,9 @@
         var directionsService = new google.maps.DirectionsService();
         var currentLocation = new google.maps.LatLng(this.props.initLat, this.props.initLon);
         var request = {
-          destination: "341 Larkspur St, Ann Arbor, MI",
+          destination: "341 Larkspur St, Ann Arbor, MI", // TODO add interface to allow user to input destination
           origin: currentLocation,
-          waypoints: [
-          //  {
-          //    location:"Joplin, MO",
-          //    stopover:false
-          //  },{
-          //    location:"Oklahoma City, OK",
-          //    stopover:true
-          //  }
-          ],
+          waypoints: [],
           provideRouteAlternatives: true,
           travelMode: google.maps.TravelMode.TRANSIT,
           unitSystem: google.maps.UnitSystem.IMPERIAL
@@ -217,7 +187,7 @@
           }
         });
       },
-    
+
       componentDidMount : function() {
         var createMap = (function() {
           var mapOptions = {
@@ -233,10 +203,6 @@
     
           if( this.props.points ) this.updateMarkers(this.props.points);
 
-          var $mapToggler = document.querySelector('#map-toggle-handler');
-          $mapToggler.addEventListener('click', function(event) {
-              this.setState({ show: !this.state.show });        
-          }.bind(this));
         }).bind(this);
     
         if (typeof google !== 'undefined') {
@@ -258,7 +224,7 @@
           }
     
           // add a callback to the end of the chain
-          window.reactMapCallbacks.push(createMap)
+          window.reactMapCallbacks.push(createMap);
         }
       },
     
@@ -267,6 +233,41 @@
         if( props.points ) this.updateMarkers(props.points);
       }
     
+    });
+
+    var App = React.createClass({
+      getInitialState: function() {
+        return { activeView: 'Map' };
+      },
+
+      viewToggleClick: function() {
+        if (this.state.activeView === 'Map') {
+          this.setState({ activeView: 'Status' });
+        } else {
+          this.setState({ activeView: 'Map' });
+        }
+      },
+
+      render: function() {
+        return <div>
+            <nav className="config">
+              <ul className="nav-items nav-items-left">
+                <li>Menu</li>
+              </ul> 
+              <ul className="nav-items nav-items-right">
+                <li onClick={this.viewToggleClick} id="view-toggle-handler">{ this.state.activeView }</li>
+              </ul> 
+            </nav>
+            <main>
+              <div className={"map-box" + (this.state.activeView === 'Map' ? ' visible' : '')}>
+                <Map ref="map" points={this.props.points} initLat={this.props.position.coords.latitude} initLon={this.props.position.coords.longitude} initZoom={16} width='100%' height='100%'></Map>
+              </div>
+              <div className={"status-box" + (this.state.activeView === 'Status' ? ' visible' : '')}>
+                <StatusBox ref="status"></StatusBox> 
+              </div>
+            </main>
+          </div>;
+      }
     });
 
     function init() {
@@ -278,20 +279,15 @@
           });
 
           React.render(
-            <Map points={points} initLat={position.coords.latitude} initLon={position.coords.longitude} initZoom={16} width='100%' height='100%' />,
-            document.querySelector('#map')
+            <App points={points} position={position} />,
+            document.querySelector('body')
           );
-          var parsed;
           window.userRoutes = _(stopKeys).chain()
             .map(function(stopKey) {
               return stopKey.abbreviation;
             })
             .uniq()
             .value();
-          React.render(
-            <StatusBox />,
-            document.querySelector('#status')
-          );
         });
       });
       window.sender = new WebSocket('ws://' + location.host + '/send');
