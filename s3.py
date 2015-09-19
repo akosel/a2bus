@@ -2,7 +2,7 @@ import boto
 import json
 
 conn = boto.connect_s3()
-bucket = conn.get_bucket('a2bus.com')
+bucket = conn.get_bucket('a2bus')
 
 def get_key(key):
     k = boto.s3.key.Key(bucket)

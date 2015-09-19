@@ -1,15 +1,24 @@
-import redis
-import s3
-import requests
+import geohash
 import json
+import os
+import redis
+import requests
+import s3
 import yaml
 
 BASE_URL = 'http://microapi.theride.org'
 
 LNG_KEY = 'longitude'
-LAT_KEY = 'lattitude'
+LAT_KEY = 'lattitude' # (sic)
 
-redis = redis.Redis()
+redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
+try:
+    api_redis = redis.from_url(redis_url)
+    api_redis.ping()
+    print 'Connected to redis in API'
+except redis.ConnectionError as e:
+    print 'ERROR', e
+    api_redis = None
 
 def get_stops_on_routes():
     r = requests.get('{0}/StopsOnRoute'.format(BASE_URL))
@@ -39,38 +48,43 @@ def get_parsed_coordinate(coordinate):
     if coordinate.startswith('-'):
         dot_idx = 3
 
-    return coordinate[:dot_idx] + '.' + coordinate[dot_idx:]
+    return float(coordinate[:dot_idx] + '.' + coordinate[dot_idx:])
 
 def get_parsed_key(key):
     key_list = key.split('.')
     return { 'abbreviation': key_list[0], 'stopID': key_list[1], 'directionID': key_list[2] }
 
 def get_last_locations():
-    return yaml.safe_load(redis.get('locations.last'))
+    return yaml.safe_load(api_redis.get('locations.last'))
 
 def set_last_locations(locations):
-    redis.set('locations.last', yaml.safe_dump(locations))
+    api_redis.set('locations.last', yaml.safe_dump(locations))
 
 def set_cache_stops():
     stops = get_stops_on_routes()
     key = '{0}.{1}.{2}'
+    pipe = api_redis.pipeline(transaction=False)
     for stop in stops:
         stop['lat'], stop['lng'] = get_parsed_coordinate(stop[LAT_KEY]), get_parsed_coordinate(stop[LNG_KEY])
-        redis.set(key.format(stop['abbreviation'], stop['stopID'], stop['directionID']), yaml.safe_dump(stop)) 
-        redis.execute_command('GEOADD', 'locations', stop['lng'], stop['lat'], key.format(stop['abbreviation'], stop['stopID'], stop['directionID']))
+        pipe.set(key.format(stop['abbreviation'], stop['stopID'], stop['directionID']), yaml.safe_dump(stop))
+        pipe.zadd('locations', key.format(stop['abbreviation'], stop['stopID'], stop['directionID']), geohash.encode_uint64(stop['lat'], stop['lng']))
+    pipe.execute()
 
 def get_stop_details(stops):
-    pipe = redis.pipeline(transaction=False)
+    pipe = api_redis.pipeline(transaction=False)
+    print stops
     for stop in stops:
         pipe.get(stop)
 
     stops = pipe.execute()
     return [yaml.safe_load(stop) for stop in stops]
 
-def get_nearest_stops(key, lng, lat, radius, units, with_dist=False, with_coord=False, with_hash=False, sort=None):
-    if not redis.exists('locations'):
+def get_nearest_stops(key, lng, lat, radius=150, units='m', with_dist=False, with_coord=False, with_hash=False, sort=None):
+    if not api_redis.exists('locations'):
         set_cache_stops()
     pieces = [key, lng, lat, radius, units]
+
+    ranges = geohash.expand_uint64(geohash.encode_uint64(float(lat), float(lng)), precision=36)
 
     if with_dist:
         pieces.append('WITHDIST')
@@ -81,5 +95,11 @@ def get_nearest_stops(key, lng, lat, radius, units, with_dist=False, with_coord=
     if sort:
         pieces.append(sort)
 
-    stops = redis.execute_command('GEORADIUS', *pieces)
+    pipe = api_redis.pipeline(transaction=False)
+    for r in ranges:
+        pipe.zrangebyscore(key, r[0], r[1])
+
+    # TODO This will require some intermediate steps if scores are returned
+    stops = [stop for stop_list in pipe.execute() for stop in stop_list]
+    # TODO Implement filtering by radius and units
     return get_stop_details(stops)

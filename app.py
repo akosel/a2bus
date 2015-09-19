@@ -1,4 +1,5 @@
 #----------------------------------------------------------------------------#
+
 # Imports
 #----------------------------------------------------------------------------#
 
@@ -21,15 +22,6 @@ import time
 
 app = Flask(__name__)
 sockets = Sockets(app)
-redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
-try:
-    r = redis.from_url(redis_url)
-    r.ping()
-    print 'Connected to redis'
-except redis.ConnectionError as e:
-    print 'ERROR', e
-    r = None 
-
 
 REDIS_CHAN = 'chat'
 
@@ -38,7 +30,7 @@ class ChatBackend(object):
 
     def __init__(self):
         self.clients = list()
-        self.pubsub = r.pubsub()
+        self.pubsub = api.api_redis.pubsub()
         self.pubsub.subscribe(REDIS_CHAN)
 
     def __iter_data(self):
@@ -64,12 +56,10 @@ class ChatBackend(object):
     def update(self):
         while True:
             location_data = api.get_bus_locations()
-            print 'Updating', location_data
             for client in self.clients:
                 gevent.spawn(self.send, client, json.dumps(location_data))
 
             if location_data:
-                s3.update_list('locations', location_data)
                 s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)
                 api.set_last_locations(location_data)
             time.sleep(1)
@@ -102,8 +92,8 @@ def get_route_names():
 
 @app.route('/api/v1.0/nearbystops')
 def get_nearby_stops():
-    pieces = [request.args.get('lng', ''), request.args.get('lat', ''), request.args.get('radius', 100), request.args.get('units', 'm')]
-    stops = api.get_nearest_stops('locations', *pieces)
+    pieces = { 'lng': request.args.get('lng', ''), 'lat': request.args.get('lat', ''), 'radius': request.args.get('radius', 150), 'units': request.args.get('units', 'm') }
+    stops = api.get_nearest_stops('locations', **pieces)
     return json.dumps(stops)
 
 @app.route('/api/v1.0/lastlocations')
@@ -121,14 +111,18 @@ def get_bus_location(route):
 @sockets.route('/send')
 def inbox(ws):
     """Receives incoming chat messages, inserts them into Redis."""
-    while True:
+   while True:
         # Sleep to prevent *contstant* context-switches.
         gevent.sleep(0.1)
-        message = ws.receive()
+        try:
+            message = ws.receive()
+        except:
+            print 'Breaking socket event loop'
+            break
 
         if message:
             app.logger.info(u'Inserting message: {}'.format(message))
-            r.publish(REDIS_CHAN, message)
+            api.api_redis.publish(REDIS_CHAN, message)
 
 @sockets.route('/receive')
 def outbox(ws):

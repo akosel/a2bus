@@ -3,6 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <link rel="stylesheet" href="/static/css/stylesheet.css"/>
+    <title>Welcome to a2bus</title>
   </head>
   <body>
     <h1 class="loading-text">Loading...</h1>
@@ -16,7 +17,7 @@
 
     var StatusBox = React.createClass({
       getInitialState: function() {
-        return { data: [], slice: [], show: false };
+        return { data: [], slice: [], show: true };
       },
 
       updateActiveRoutes: function(activeRoutes) {
@@ -34,6 +35,10 @@
           var activeRoutes = status && status.data && _(status.data).isString() ? JSON.parse(status.data) : [];
           this.updateActiveRoutes(activeRoutes);
         }.bind(this);
+        window.onbeforeunload = function() {
+          receiver.onclose = function() {};
+          receiver.close();
+        }
         api.getLastLocations(this.updateActiveRoutes);
       },
 
@@ -94,7 +99,7 @@
         return {
           map : null,
           lines: {},
-          show: true,
+          show: false,
           markers : []
         };
       },
@@ -237,7 +242,7 @@
 
     var App = React.createClass({
       getInitialState: function() {
-        return { activeView: 'Map' };
+        return { activeView: 'Status' };
       },
 
       viewToggleClick: function() {
@@ -271,9 +276,11 @@
     });
 
     function init() {
+      console.log('init');
       navigator.geolocation.getCurrentPosition(function(position) {
         window.userPosition = position;
         api.getNearbyStops(function(stopKeys) { 
+          console.log('stopKeys', stopKeys);
           var points = stopKeys.map(function(stop) {
             return { latitude: stop.lat, longitude: stop.lng };
           });
@@ -291,6 +298,10 @@
         });
       });
       window.sender = new WebSocket('ws://' + location.host + '/send');
+      window.onbeforeunload = function() {
+        sender.onclose = function() {};
+        sender.close();
+      }
     }
 
     window.onload = init();
