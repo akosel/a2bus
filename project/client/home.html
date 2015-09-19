@@ -2,16 +2,16 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <link rel="stylesheet" href="/static/css/stylesheet.css"/>
+    <link rel="stylesheet" href="/dist/css/stylesheet.css"/>
     <title>Welcome to a2bus</title>
   </head>
   <body>
     <h1 class="loading-text">Loading...</h1>
   </body>
-  <script src="/static/lib/underscore-min.js"></script>
-  <script src="/static/js/api.js"></script>
-  <script src="/static/lib/react.js"></script>
-  <script src="/static/lib/JSXTransformer.js"></script>
+  <script src="/dist/lib/underscore-min.js"></script>
+  <script src="/dist/js/api.js"></script>
+  <script src="/dist/lib/react.js"></script>
+  <script src="/dist/lib/JSXTransformer.js"></script>
   <script type="text/jsx">
     var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
@@ -73,7 +73,7 @@
             <div className="info clearfix">
               <ul>
                 <li className="adherence">
-                  Late by: { this.props.routeInfo.adherence } 
+                  Late by: { this.props.routeInfo.adherence }
                 </li>
                 <li className="timestamp">
                   { this.props.routeInfo.timestamp }
@@ -91,7 +91,7 @@
           );
       }
     });
-      
+
     var Map = React.createClass({
 
       // initialize local variables
@@ -103,7 +103,7 @@
           markers : []
         };
       },
-    
+
       // set some default values
       getDefaultProps: function() {
         return {
@@ -118,53 +118,53 @@
           gmaps_sensor: false
         }
       },
-    
+
       // update geo-encoded markers
       updateMarkers : function(points) {
-    
+
         var markers = this.state.markers;
         var map = this.state.map;
-    
+
         // remove everything
         markers.forEach( function(marker) {
           marker.setMap(null);
         } );
-    
+
         this.state.markers = [];
-    
+
         // add new markers
         points.forEach( (function( point ) {
-    
+
           var location = new google.maps.LatLng( point.latitude , point.longitude );
-    
+
           var marker = new google.maps.Marker({
             position: location,
             map: map,
             title: point.label
           });
-    
+
           markers.push( marker );
-    
+
         }) );
-    
+
         this.setState( { markers : markers });
       },
-    
+
       updateZoom: function (newZoom) {
         this.state.map.setZoom(newZoom)
       },
-    
+
       updateCenter: function(newLat, newLon){
         var newCenter = new google.maps.LatLng(newLat, newLon)
         this.state.map.setCenter(newCenter)
       },
-    
+
       render : function() {
         var style = {
           width: this.props.width,
           height: this.props.height,
         }
-    
+
         return React.DOM.div({style:style})
       },
 
@@ -200,16 +200,16 @@
             center: new google.maps.LatLng( this.props.initLat , this.props.initLon ),
             mapTypeId: google.maps.MapTypeId.ROADMAP
           };
-    
+
           var map = new google.maps.Map( this.getDOMNode(), mapOptions);
-          
+
           this.setState( { map : map } );
           this.updateTransitLayer();
-    
+
           if( this.props.points ) this.updateMarkers(this.props.points);
 
         }).bind(this);
-    
+
         if (typeof google !== 'undefined') {
           // scripts already loaded, create map immediately
           createMap()
@@ -219,7 +219,7 @@
             var s =document.createElement('script');
             s.src = 'https://maps.googleapis.com/maps/api/js?key=' + this.props.gmaps_api_key + '&sensor=' + this.props.gmaps_sensor + '&callback=reactMapCallback';
             document.head.appendChild( s );
-    
+
             // when the script has loaded, run all the callbacks
             window.reactMapCallbacks = []
             window.reactMapCallback = function(){
@@ -227,17 +227,17 @@
                 (window.reactMapCallbacks.shift())() // remove from front
             }
           }
-    
+
           // add a callback to the end of the chain
           window.reactMapCallbacks.push(createMap);
         }
       },
-    
+
       // update props (ignores the initial ones: initLat, initLon, initZoom)
       componentWillReceiveProps : function(props) {
         if( props.points ) this.updateMarkers(props.points);
       }
-    
+
     });
 
     var App = React.createClass({
@@ -258,17 +258,17 @@
             <nav className="config">
               <ul className="nav-items nav-items-left">
                 <li>Menu</li>
-              </ul> 
+              </ul>
               <ul className="nav-items nav-items-right">
                 <li onClick={this.viewToggleClick} id="view-toggle-handler">{ this.state.activeView === 'Map' ? 'Status' : 'Map' }</li>
-              </ul> 
+              </ul>
             </nav>
             <main>
               <div className={"map-box" + (this.state.activeView === 'Map' ? ' visible' : '')}>
                 <Map ref="map" points={this.props.points} initLat={this.props.position.coords.latitude} initLon={this.props.position.coords.longitude} initZoom={16} width='100%' height='100%'></Map>
               </div>
               <div className={"status-box" + (this.state.activeView === 'Status' ? ' visible' : '')}>
-                <StatusBox ref="status"></StatusBox> 
+                <StatusBox ref="status"></StatusBox>
               </div>
             </main>
           </div>;
@@ -279,7 +279,7 @@
       console.log('init');
       navigator.geolocation.getCurrentPosition(function(position) {
         window.userPosition = position;
-        api.getNearbyStops(function(stopKeys) { 
+        api.getNearbyStops(function(stopKeys) {
           console.log('stopKeys', stopKeys);
           var points = stopKeys.map(function(stop) {
             return { latitude: stop.lat, longitude: stop.lng };

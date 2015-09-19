@@ -20,7 +20,7 @@ import time
 # App Config.
 #----------------------------------------------------------------------------#
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../../dist', template_folder='../client')
 sockets = Sockets(app)
 
 REDIS_CHAN = 'chat'
@@ -56,10 +56,10 @@ class ChatBackend(object):
     def update(self):
         while True:
             location_data = api.get_bus_locations()
-            for client in self.clients:
-                gevent.spawn(self.send, client, json.dumps(location_data))
 
             if location_data:
+                for client in self.clients:
+                    gevent.spawn(self.send, client, json.dumps(location_data))
                 s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)
                 api.set_last_locations(location_data)
             time.sleep(1)
@@ -84,7 +84,7 @@ chats.start()
 
 @app.route('/')
 def home():
-    return render_template('pages/home.html')
+    return render_template('home.html')
 
 @app.route('/api/v1.0/routenames')
 def get_route_names():
@@ -111,7 +111,7 @@ def get_bus_location(route):
 @sockets.route('/send')
 def inbox(ws):
     """Receives incoming chat messages, inserts them into Redis."""
-   while True:
+    while True:
         # Sleep to prevent *contstant* context-switches.
         gevent.sleep(0.1)
         try:

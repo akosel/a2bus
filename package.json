@@ -4,12 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "gunicorn -b 0.0.0.0:8000 --pythonpath project/server app:app -k \"geventwebsocket.gunicorn.workers.GeventWebSocketWorker\""
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "babel": "^5.8.23",
     "gulp": "^3.9.0",
     "gulp-sass": "^2.0.4"
+  },
+  "dependencies": {
+    "moment": "^2.10.6",
+    "react": "^0.13.3",
+    "underscore": "^1.8.3"
   }
 }
