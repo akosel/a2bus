@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 /*
  *  Basic wrapper for managing AJAX requests
  *
@@ -30,7 +32,7 @@ api.getNearbyStops = function(callback) {
   this.get([url, paramString].join('?'), function(xhr) {
     var nearbyStops = xhr && _(xhr.response).isString() ? JSON.parse(xhr.response) : [];
     callback(nearbyStops);
-  }); 
+  });
 };
 
 api.getLastLocations = function(callback) {
@@ -41,5 +43,7 @@ api.getLastLocations = function(callback) {
        lastLocations = xhr.response;
     }
     callback(lastLocations);
-  }); 
+  });
 };
+
+export default api;

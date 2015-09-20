@@ -16,7 +16,7 @@ window.BusAlertMgr = function(args) {
           min: 0,
           max: 59
         }
-      }, 
+      },
       walkTime: {
         name: 'Walk Time',
         labelText: 'How long does it take you to walk to the bus stop?',
@@ -26,7 +26,7 @@ window.BusAlertMgr = function(args) {
           type: 'number',
           min: 0
         }
-      }, 
+      },
       route: {
         name: 'Route',
         labelText: 'What is your route number?',
@@ -71,11 +71,11 @@ _(BusAlertMgr.prototype).extend({
       }
 
       var bus = toBusGroup[0];
-      
+
       var updateValues = self.options.dashItems;
 
       _(updateValues).each(function(val) {
-        self._updateElement(val, bus[val]); 
+        self._updateElement(val, bus[val]);
       });
 
     });
@@ -103,7 +103,7 @@ _(BusAlertMgr.prototype).extend({
         console.log('MISSING: ', val);
         self.showConfig(val);
         return false;
-      } 
+      }
       return true;
     });
 
@@ -129,7 +129,7 @@ _(BusAlertMgr.prototype).extend({
     $input.min = 0;
     $input.required = true;
     $input.className = val;
-    
+
     this.options.userConfig[val].$formElements.push($input);
     this.$selectors[val].appendChild($input);
   },
@@ -146,7 +146,7 @@ _(BusAlertMgr.prototype).extend({
     }
 
     $select.onchange = function() {
-      $select.value = self.options.routes[$select.selectedIndex]; 
+      $select.value = self.options.routes[$select.selectedIndex];
       console.log('NEW VALUE: ', $select.value);
     };
 
@@ -199,7 +199,7 @@ _(BusAlertMgr.prototype).extend({
 
     this._addButton({
       text: 'All done',
-      context: 'notifications' 
+      context: 'notifications'
     }, function() {
       var self = this;
 
@@ -219,11 +219,11 @@ _(BusAlertMgr.prototype).extend({
           value = JSON.stringify(value);
         } else {
           console.log($formElements);
-          value = $formElements[0].value; 
+          value = $formElements[0].value;
         }
 
         userConfig[key] = value;
-        
+
         // var $span = document.createElement('span');
         // $span.textContent = value;
         // self.$selectors['controls'].appendChild($span);
@@ -261,7 +261,7 @@ _(BusAlertMgr.prototype).extend({
     var fmt = 'HH:mm';
     var $timestamp = document.querySelector('.timestamp');
 
-    this.socket.on('busData', function(data) { 
+    this.socket.on('busData', function(data) {
       lateBy = self._getLateBy(data[0].adherence);
     });
 
