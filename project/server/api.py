@@ -30,6 +30,9 @@ def get_stops_on_route(route):
 
 def get_bus_locations():
     r = requests.get('{0}/Location'.format(BASE_URL))
+    locations = r.json()
+    locations['lat'] = get_parsed_coordinate(locations[LAT_KEY])
+    locations['lng'] = get_parsed_coordinate(locations[LNG_KEY])
     return r.json()
 
 def get_bus_location(route):
@@ -67,12 +70,12 @@ def set_cache_stops():
     for stop in stops:
         stop['lat'], stop['lng'] = get_parsed_coordinate(stop[LAT_KEY]), get_parsed_coordinate(stop[LNG_KEY])
         pipe.set(key.format(stop['abbreviation'], stop['stopID'], stop['directionID']), yaml.safe_dump(stop))
+        # TODO Some day this can be done with the Geo Redis commands
         pipe.zadd('locations', key.format(stop['abbreviation'], stop['stopID'], stop['directionID']), geohash.encode_uint64(stop['lat'], stop['lng']))
     pipe.execute()
 
 def get_stop_details(stops):
     pipe = api_redis.pipeline(transaction=False)
-    print stops
     for stop in stops:
         pipe.get(stop)
 
@@ -84,8 +87,10 @@ def get_nearest_stops(key, lng, lat, radius=150, units='m', with_dist=False, wit
         set_cache_stops()
     pieces = [key, lng, lat, radius, units]
 
+    # XXX Can modify precision based on user radius. Default to 36 (~150m)
     ranges = geohash.expand_uint64(geohash.encode_uint64(float(lat), float(lng)), precision=36)
 
+    # XXX This has no affect at this time
     if with_dist:
         pieces.append('WITHDIST')
     if with_coord:
@@ -95,6 +100,7 @@ def get_nearest_stops(key, lng, lat, radius=150, units='m', with_dist=False, wit
     if sort:
         pieces.append(sort)
 
+    # TODO Some day this can be done with the Geo Redis commands
     pipe = api_redis.pipeline(transaction=False)
     for r in ranges:
         pipe.zrangebyscore(key, r[0], r[1])

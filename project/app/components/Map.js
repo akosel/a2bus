@@ -7,13 +7,12 @@ class Map extends React.Component {
     this.state = {
       map : null,
       lines: {},
-      show: false,
       markers : []
     };
   }
 
   // update geo-encoded markers
-  updateMarkers(points) {
+  updateMarkers(stops) {
 
     var markers = this.state.markers;
     var map = this.state.map;
@@ -26,9 +25,9 @@ class Map extends React.Component {
     this.state.markers = [];
 
     // add new markers
-    points.forEach( (function( point ) {
+    stops.forEach( (function( point ) {
 
-      var location = new google.maps.LatLng( point.latitude , point.longitude );
+      var location = new google.maps.LatLng( point.lat, point.lng );
 
       var marker = new google.maps.Marker({
         position: location,
@@ -72,7 +71,7 @@ class Map extends React.Component {
     var directionsService = new google.maps.DirectionsService();
     var currentLocation = new google.maps.LatLng(this.props.initLat, this.props.initLon);
     var request = {
-      destination: "341 Larkspur St, Ann Arbor, MI", // TODO add interface to allow user to input destination
+      destination: this.props.destination, // TODO add interface to allow user to input destination
       origin: currentLocation,
       waypoints: [],
       provideRouteAlternatives: true,
@@ -97,38 +96,20 @@ class Map extends React.Component {
       var map = new google.maps.Map( React.findDOMNode(this), mapOptions);
 
       this.setState( { map : map } );
-      this.updateTransitLayer();
+      if (this.props.destination) {
+        this.updateTransitLayer();
+      }
 
-      if( this.props.points ) this.updateMarkers(this.props.points);
+      if( this.props.stops ) this.updateMarkers(this.props.stops);
 
     }).bind(this);
 
-    if (typeof google !== 'undefined') {
-      // scripts already loaded, create map immediately
-      createMap()
-    } else {
-      if (!window.reactMapCallback) {
-        // if this is the first time, load the scripts:
-        var s =document.createElement('script');
-        s.src = 'https://maps.googleapis.com/maps/api/js?key=' + this.props.gmaps_api_key + '&sensor=' + this.props.gmaps_sensor + '&callback=reactMapCallback';
-        document.head.appendChild( s );
-
-        // when the script has loaded, run all the callbacks
-        window.reactMapCallbacks = []
-        window.reactMapCallback = function(){
-          while (window.reactMapCallbacks.length > 0)
-            (window.reactMapCallbacks.shift())() // remove from front
-        }
-      }
-
-      // add a callback to the end of the chain
-      window.reactMapCallbacks.push(createMap);
-    }
+    createMap()
   }
 
   // update props (ignores the initial ones: initLat, initLon, initZoom)
   componentWillReceiveProps(props) {
-    if( props.points ) this.updateMarkers(props.points);
+    if( props.stops ) this.updateMarkers(props.stops);
   }
 
 }
@@ -138,7 +119,7 @@ Map.defaultProps = {
   initZoom: 4,
   width: 500,
   height: 500,
-  points: [],
+  stops: [],
   lines:{},
   gmaps_api_key: 'AIzaSyB7GsL0qvb10WBpJzFznuf3caOUUJSmPUw',
   gmaps_sensor: false

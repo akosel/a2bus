@@ -1,5 +1,5 @@
 import React from 'react/addons';
-import Status from './Status';
+import StatusItem from './StatusItem';
 
 var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
@@ -7,9 +7,9 @@ class  StatusList extends React.Component {
   render() {
     var statusNodes = this.props.slice.map(function(routeInfo, idx) {
       return (
-        <Status key={routeInfo.busNum} routeInfo={routeInfo}></Status>
+        <StatusItem stops={this.props.stops} lat={this.props.lat} lng={this.props.lng} key={routeInfo.busNum} routeInfo={routeInfo}></StatusItem>
       );
-    });
+    }.bind(this));
     return (
       <div className='status-list'>
         <ReactCSSTransitionGroup transitionName="fade">

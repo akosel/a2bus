@@ -1,5 +1,4 @@
 import React from 'react/addons';
-
 import AppRoot from './components/AppRoot';
 
 /*

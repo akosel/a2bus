@@ -22,6 +22,14 @@ def get_list(key):
     k = get_key(key)
     return json.loads(k.get_contents_as_string())
 
+def get_list_of_keys(prefix):
+    key_list = bucket.list(prefix=prefix)
+    key_dict = {}
+    for key in key_list:
+        key_dict[key.key] = key.get_contents_as_string()
+    return json.dumps(key_dict)
+
+
 def get_file(key, filename):
     k = get_key(key)
     k.get_contents_to_filename(filename)

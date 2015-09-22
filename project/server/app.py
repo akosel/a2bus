@@ -55,14 +55,18 @@ class ChatBackend(object):
 
     def update(self):
         while True:
-            location_data = api.get_bus_locations()
+            location_data = []
+            location_data.extend(api.get_bus_location(8))
+            location_data.extend(api.get_bus_location(15))
+            #location_data = api.get_bus_locations()
 
             if location_data:
                 for client in self.clients:
                     gevent.spawn(self.send, client, json.dumps(location_data))
-                s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)
+                #s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)
+                print location_data
                 api.set_last_locations(location_data)
-            time.sleep(1)
+            time.sleep(10)
 
     def run(self):
         """Listens for new messages in Redis, and sends them to clients."""
@@ -154,7 +158,7 @@ if not app.debug:
     app.logger.setLevel(logging.INFO)
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)
-    app.logger.info('errors')
+    #app.logger.info('errors')
 
 #----------------------------------------------------------------------------#
 # Launch.
@@ -162,4 +166,4 @@ if not app.debug:
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
-    socketio.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port)
