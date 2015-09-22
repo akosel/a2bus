@@ -65,13 +65,13 @@ def set_last_locations(locations):
 
 def set_cache_stops():
     stops = get_stops_on_routes()
-    key = '{0}.{1}.{2}'
+    key = '{0}.{1}.{2}.{3}'
     pipe = api_redis.pipeline(transaction=False)
     for stop in stops:
         stop['lat'], stop['lng'] = get_parsed_coordinate(stop[LAT_KEY]), get_parsed_coordinate(stop[LNG_KEY])
-        pipe.set(key.format(stop['abbreviation'], stop['stopID'], stop['directionID']), yaml.safe_dump(stop))
+        pipe.set(key.format(stop['abbreviation'], stop['stopID'], stop['directionID'], stop['sequence']), yaml.safe_dump(stop))
         # TODO Some day this can be done with the Geo Redis commands
-        pipe.zadd('locations', key.format(stop['abbreviation'], stop['stopID'], stop['directionID']), geohash.encode_uint64(stop['lat'], stop['lng']))
+        pipe.zadd('locations', key.format(stop['abbreviation'], stop['stopID'], stop['directionID'], stop['sequence']), geohash.encode_uint64(stop['lat'], stop['lng']))
     pipe.execute()
 
 def get_stop_details(stops):
@@ -88,7 +88,7 @@ def get_nearest_stops(key, lng, lat, radius=150, units='m', with_dist=False, wit
     pieces = [key, lng, lat, radius, units]
 
     # XXX Can modify precision based on user radius. Default to 36 (~150m)
-    ranges = geohash.expand_uint64(geohash.encode_uint64(float(lat), float(lng)), precision=36)
+    ranges = geohash.expand_uint64(geohash.encode_uint64(float(lat), float(lng)), precision=30)
 
     # XXX This has no affect at this time
     if with_dist:
