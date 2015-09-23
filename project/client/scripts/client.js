@@ -17,15 +17,11 @@ function getBusLocations(routes) {
 }
 
 navigator.geolocation.watchPosition(function(position) {
-  window.userPosition = position;
-  api.getNearbyStops(function(v) { console.log('watchPosition callback: ', v); })
+  api.getNearbyStops(position, function(v) { console.log('watchPosition callback: ', v); })
 });
 
 navigator.geolocation.getCurrentPosition(function(position) {
-  console.log('here');
-  window.userPosition = position;
-  console.log(position);
-  api.getNearbyStops(function(stopKeys) {
+  api.getNearbyStops(position, function(stopKeys) {
 
     var userRoutes = _(stopKeys).chain()
       .map(function(stopKey) {

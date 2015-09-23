@@ -17,7 +17,7 @@ api.get = function(url, callback) {
   xhr.send();
 }
 
-api.getNearbyStops = function(callback) {
+api.getNearbyStops = function(userPosition, callback) {
   var url = [base, 'nearbystops'].join('/');
   var params = {
     lat: userPosition.coords.latitude,
@@ -45,5 +45,7 @@ api.getLastLocations = function(callback) {
     callback(lastLocations);
   });
 };
+
+
 
 export default api;

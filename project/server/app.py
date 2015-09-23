@@ -25,7 +25,7 @@ sockets = Sockets(app)
 
 REDIS_CHAN = 'chat'
 
-class ChatBackend(object):
+class Websockets(object):
     """Interface for registering and updating WebSocket clients."""
 
     def __init__(self):
@@ -78,8 +78,8 @@ class ChatBackend(object):
         gevent.spawn(self.run)
         gevent.spawn(self.update)
 
-chats = ChatBackend()
-chats.start()
+websockets = Websockets()
+websockets.start()
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -129,11 +129,11 @@ def inbox(ws):
 
 @sockets.route('/receive')
 def outbox(ws):
-    """Sends outgoing chat messages, via `ChatBackend`."""
-    chats.register(ws)
+    """Sends outgoing chat messages, via `Websockets`."""
+    websockets.register(ws)
 
     while True:
-        # Context switch while `ChatBackend.start` is running in the background.
+        # Context switch while `Websockets.start` is running in the background.
         gevent.sleep()
 
 # Error handlers.

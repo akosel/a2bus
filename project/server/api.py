@@ -61,7 +61,7 @@ def get_parsed_coordinate(coordinate):
 
 def get_parsed_key(key):
     key_list = key.split('.')
-    return { 'abbreviation': key_list[0], 'stopID': key_list[1], 'directionID': key_list[2] }
+    return { 'abbreviation': key_list[0], 'stopID': key_list[1], 'directionID': key_list[2], 'sequence': key_list[3] }
 
 def get_last_locations():
     return yaml.safe_load(api_redis.get('locations.last'))
@@ -79,6 +79,16 @@ def set_cache_stops():
         # TODO Some day this can be done with the Geo Redis commands
         pipe.zadd('locations', key.format(stop['abbreviation'], stop['stopID'], stop['directionID'], stop['sequence']), geohash.encode_uint64(stop['lat'], stop['lng']))
     pipe.execute()
+
+def get_historical_data(year='2015', month='09', day='21', hour='23', minute=''):
+    prefix = 'locations.{0}{1}{2}T{3}{4}'.format(year, month, day, hour, minute)
+    print prefix
+    location_dict = yaml.safe_load(s3.get_list_of_keys(prefix))
+    location_values = [v for location_list in location_dict.values() for v in yaml.safe_load(location_list)]
+    return location_values
+
+# TODO Use historical timepoints to get a stop's expected crossing time
+# TODO Update redis stop key with expected crossing time value
 
 def get_stop_details(stops):
     pipe = api_redis.pipeline(transaction=False)
