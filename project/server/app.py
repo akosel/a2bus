@@ -55,16 +55,15 @@ class ChatBackend(object):
 
     def update(self):
         while True:
-            location_data = []
-            location_data.extend(api.get_bus_location(8))
-            location_data.extend(api.get_bus_location(15))
-            #location_data = api.get_bus_locations()
+            #location_data = []
+            #location_data.extend(api.get_bus_location(8))
+            #location_data.extend(api.get_bus_location(15))
+            location_data = api.get_bus_locations()
 
             if location_data:
                 for client in self.clients:
                     gevent.spawn(self.send, client, json.dumps(location_data))
-                #s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)
-                print location_data
+                s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)
                 api.set_last_locations(location_data)
             time.sleep(10)
 
