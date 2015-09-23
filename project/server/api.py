@@ -104,7 +104,7 @@ def get_nearest_stops(key, lng, lat, radius=150, units='m', with_dist=False, wit
     pieces = [key, lng, lat, radius, units]
 
     # XXX Can modify precision based on user radius. Default to 36 (~150m)
-    ranges = geohash.expand_uint64(geohash.encode_uint64(float(lat), float(lng)), precision=30)
+    ranges = geohash.expand_uint64(geohash.encode_uint64(float(lat), float(lng)), precision=36)
 
     # XXX This has no affect at this time
     if with_dist:
