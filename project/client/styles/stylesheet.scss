@@ -1,6 +1,8 @@
 /* SASS VARIABLES */
 $font-stack: 'Gill Sans', Montserrat, Helvetica;
-$media-phone: "only screen and (max-width: 720px)";
+$media-low-res: "only screen and (max-width: 960px)";
+$media-tablet: "only screen and (max-width: 720px)";
+$media-phone: "only screen and (max-width: 400px)";
 $nav-height: 50px;
 
 /* MIXINS */
@@ -108,6 +110,12 @@ main {
   margin: 0 auto;
   overflow: visible;
 
+  @media #{$media-low-res} {
+    width: 720px;
+  }
+  @media #{$media-tablet} {
+    width: 400px;
+  }
   @media #{$media-phone} {
     width: 300px;
   }

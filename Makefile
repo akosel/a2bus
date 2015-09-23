@@ -1,4 +1,4 @@
-CFLAGS=-std=c99
+
 
 all: node_modules venv
 
@@ -7,4 +7,9 @@ node_modules: package.json
 
 venv: requirements.txt
 	virtualenv venv
-	venv/bin/pip install -r requirements.txt
+	CFLAGS="-std=c99" venv/bin/pip install -r requirements.txt
+	venv/bin/pip install python-geohash
+
+clean:
+	rm -rf venv
+	rm -rf node_modules
