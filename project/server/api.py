@@ -33,7 +33,6 @@ def get_bus_locations():
     r = requests.get('{0}/Location'.format(BASE_URL))
     locations = r.json()
     for location in locations:
-        print location
         raw_lat = location.get(LAT_KEY) or location.get(LAT_KEY_NEW)
         raw_lng = location.get(LNG_KEY)
         location['lat'] = get_parsed_coordinate(raw_lat)
