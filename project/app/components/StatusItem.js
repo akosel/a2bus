@@ -1,12 +1,12 @@
 import React from 'react/addons';
 import moment from 'moment';
 import _ from 'underscore';
+import sprintf from 'underscore.string/sprintf';
 
 import Avatar from 'material-ui/lib/avatar';
 import Card from 'material-ui/lib/card/card';
 import CardHeader from 'material-ui/lib/card/card-header';
 import CardText from 'material-ui/lib/card/card-text';
-import sprintf from 'underscore.string/sprintf';
 
 
 class StatusItem extends React.Component {
@@ -14,13 +14,15 @@ class StatusItem extends React.Component {
   constructor(props) {
     super(props);
     this.state = { lateByMessage: '', bgColor: '#eee', minutesToArrival: undefined };
-    this.getLateBy = this.getLateBy.bind(this);
     this.getBgColor = this.getBgColor.bind(this);
     this.getWalkTimeToStop = this.getWalkTimeToStop.bind(this);
   }
 
   getWalkTimeToStop(stops, route) {
-    console.log('walkTime', arguments);
+    var stop = _(stops).find(function(stop) { return stop.abbreviation === route.routeAbbr });
+    if (!stop) {
+      return;
+    }
     var directionsService = new google.maps.DirectionsService();
     var currentLocation = new google.maps.LatLng(this.props.lat, this.props.lng);
     var stop = new google.maps.LatLng(stops[0].lat, stops[0].lng);
@@ -29,11 +31,8 @@ class StatusItem extends React.Component {
       origin: currentLocation,
       travelMode: google.maps.TravelMode.WALKING,
     };
-    console.log(request);
     directionsService.route(request, function(result, status) {
-      console.log(status);
       if (status == google.maps.DirectionsStatus.OK) {
-        console.log('result', result);
         var seconds = result.routes[0].legs[0].duration.value;
         var minutes = Math.ceil(seconds / 60);
         this.setState({ walkTime: minutes });
@@ -55,21 +54,6 @@ class StatusItem extends React.Component {
     }
   }
 
-  getLateBy(adherence) {
-    var lateByMessage = 'On time';
-    var unitOfTime = 'minutes';
-
-    if (Math.abs(adherence) === 1) {
-      unitOfTime = 'minute';
-    }
-    if (adherence > 0) {
-      lateByMessage = sprintf('%s %s ahead', adherence, unitOfTime);
-    } else if (adherence < 0) {
-      lateByMessage = sprintf('%s %s late', Math.abs(adherence), unitOfTime);
-    }
-    return lateByMessage;
-  }
-
   componentDidMount() {
     var sId = setInterval(function() {
       var adherence = this.props.routeInfo.adherence;
@@ -85,11 +69,9 @@ class StatusItem extends React.Component {
 
       var time = minutesLeft + ':' + moment((59 - second) * 1000).format('ss');
 
-      this.setState({ minutesToArrival: time, style: { backgroundColor: this.getBgColor(minutesLeft) } });
+      this.setState({ lastUpdated: sprintf('%s (%s)', this.props.lastUpdated.fromNow(), this.props.lastUpdated.format('lll')), minutesToArrival: time, style: { backgroundColor: this.getBgColor(minutesLeft) } });
     }.bind(this), 500);
 
-    var lateByMessage = this.getLateBy(this.props.routeInfo.adherence);
-    this.setState({ lateByMessage: lateByMessage, minutesToArrival: '' });
     this.getWalkTimeToStop(this.props.stops, this.props.routeInfo);
   }
 
@@ -99,14 +81,14 @@ class StatusItem extends React.Component {
           <Card style={ this.state.style } initiallyExpanded={false}>
             <CardHeader
               title={ this.state.minutesToArrival }
-              subtitle={ this.state.lateByMessage }
+              subtitle={ this.props.lateByMessage }
               avatar={<Avatar>{this.props.routeInfo.routeAbbr}</Avatar>}
               showExpandableButton={true}>
             </CardHeader>
             <CardText expandable={true}>
               <ul>
                 <li className="timestamp">
-                  { this.state.lateByMessage }
+                  { this.state.lastUpdated }
                 </li>
                 <li className="direction">
                   { this.props.routeInfo.routeDirection }
@@ -118,7 +100,7 @@ class StatusItem extends React.Component {
                 </li>
                 <li className="news">
                   <p>
-                    { this.state.walkTime }
+                    Walking Time: { this.state.walkTime }
                   </p>
                 </li>
               </ul>

@@ -18,9 +18,9 @@ class Map extends React.Component {
     var map = this.state.map;
 
     // remove everything
-    markers.forEach( function(marker) {
-      marker.setMap(null);
-    } );
+    //markers.forEach( function(marker) {
+    //  marker.setMap(null);
+    //} );
 
     this.state.markers = [];
 
@@ -39,7 +39,7 @@ class Map extends React.Component {
 
     }) );
 
-    this.setState( { markers : markers });
+    this.setState({ markers : markers });
   }
 
   updateZoom(newZoom) {
@@ -60,26 +60,25 @@ class Map extends React.Component {
     return React.DOM.div({style:style})
   }
 
-  updateTransitLayer() {
+  updateTransitLayer(map) {
 
-    var map = this.state.map;
-    var transitLayer = new google.maps.TransitLayer();
-    transitLayer.setMap(map);
+    //var map = this.state.map;
 
-    var directionsDisplay = new google.maps.DirectionsRenderer();
-    directionsDisplay.setMap(map);
+    var directionsDisplay = new google.maps.DirectionsRenderer({
+        draggable: true,
+        map: map
+    });
     var directionsService = new google.maps.DirectionsService();
     var currentLocation = new google.maps.LatLng(this.props.initLat, this.props.initLon);
     var request = {
       destination: this.props.destination, // TODO add interface to allow user to input destination
       origin: currentLocation,
       waypoints: [],
-      provideRouteAlternatives: true,
       travelMode: google.maps.TravelMode.TRANSIT,
-      unitSystem: google.maps.UnitSystem.IMPERIAL
     };
     directionsService.route(request, function(result, status) {
       if (status == google.maps.DirectionsStatus.OK) {
+        console.log('setting directions', result);
         directionsDisplay.setDirections(result);
       }
     });
@@ -97,7 +96,7 @@ class Map extends React.Component {
 
       this.setState( { map : map } );
       if (this.props.destination) {
-        this.updateTransitLayer();
+        this.updateTransitLayer(map);
       }
 
       if( this.props.stops ) this.updateMarkers(this.props.stops);

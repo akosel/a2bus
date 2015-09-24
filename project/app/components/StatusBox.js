@@ -55,9 +55,11 @@ class StatusBox extends React.Component {
     var receiver = new WebSocket('ws://' + location.host + '/receive');
     receiver.onmessage = function(status) {
       var activeRoutes = status && status.data && _(status.data).isString() ? JSON.parse(status.data) : [];
+      this.updateActiveRoutes(activeRoutes);
     }.bind(this);
     api.getLastLocations(this.updateActiveRoutes);
   }
+
 
   render() {
     return (
