@@ -15,6 +15,7 @@ import api
 import gevent
 import s3
 import time
+import config
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -66,7 +67,7 @@ class Websockets(object):
                 s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)
                 print "New location data available", location_data
                 api.set_last_locations(location_data)
-            time.sleep(10)
+            time.sleep(60)
 
     def run(self):
         """Listens for new messages in Redis, and sends them to clients."""

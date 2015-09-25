@@ -1,6 +1,7 @@
 node_modules
 *.log
 config
+config.py
 venv
 *pyc
 *swp

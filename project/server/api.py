@@ -5,6 +5,7 @@ import redis
 import requests
 import s3
 import yaml
+import config
 
 BASE_URL = 'http://microapi.theride.org'
 
@@ -12,7 +13,7 @@ LNG_KEY = 'longitude'
 LAT_KEY = 'lattitude' # (sic)
 LAT_KEY_NEW = 'lat'
 
-redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
+redis_url = config.REDIS_URL or 'redis://localhost:6379'
 try:
     api_redis = redis.from_url(redis_url)
     api_redis.ping()

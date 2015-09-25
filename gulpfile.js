@@ -54,4 +54,27 @@ gulp.task('watchify', function() {
   return rebundle();
 });
 
+gulp.task('browserify', function() {
+  var b = browserify({
+    entries: [path.join(PROJECT_DIR, 'client/scripts/client.js')],
+    debug: true
+  });
+
+  b.transform(babel);
+
+  b.on('update', rebundle);
+  b.on('error', browserifyHandler);
+  b.on('log', gutil.log.bind(gutil));
+
+  function rebundle() {
+    return b.bundle()
+      .on('error', browserifyHandler)
+      .pipe(source('bundle.js'))
+      .pipe(gulp.dest(BUILD_DIR));
+  }
+
+  return rebundle();
+});
+
 gulp.task('default', ['sass', 'sass:watch', 'watchify']);
+gulp.task('build', ['sass', 'browserify']);
