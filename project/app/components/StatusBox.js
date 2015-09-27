@@ -52,7 +52,7 @@ class StatusBox extends React.Component {
   componentDidMount() {
     this.setState({ userMessage: this.getUserMessage([], []) });
     // TODO Implement a way of reopening connection if it is dropped
-    var receiver = new WebSocket('ws://' + location.host + '/receive');
+    var receiver = new WebSocket('wss://' + location.host + '/receive');
     receiver.onmessage = function(status) {
       var activeRoutes = status && status.data && _(status.data).isString() ? JSON.parse(status.data) : [];
       this.updateActiveRoutes(activeRoutes);

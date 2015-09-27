@@ -1,4 +1,5 @@
-
+# Requires node, python, virtualenv, and gulp (globally installed via npm)
+# Should add targets for those at some point
 
 all: node_modules venv dist
 

@@ -54,4 +54,4 @@ window.onload = function() {
   });
 }
 
-window.sender = new WebSocket('ws://' + location.host + '/send');
+window.sender = new WebSocket('wss://' + location.host + '/send');
