@@ -85,7 +85,7 @@ class AppRoot extends React.Component {
     }.bind(this));
     return <div>
         <AppBar
-          title="annarbus"
+          title="Ann Arbus"
           style={{ position: 'relative' }} /* XXX used to get stacking to work. warning, may affect mobile scroll smoothness! */
           iconClassNameRight="nav-items"
           onLeftIconButtonTouchTap={this.showLeftNav}
@@ -95,7 +95,7 @@ class AppRoot extends React.Component {
           message="Do something"
           action="undo"/>
         <Dialog
-          title="Welcome to annarbus!"
+          title="Welcome to Ann Arbus!"
           ref='dialog'
           actions={this.standardActions}
           actionFocus="ok"
