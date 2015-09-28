@@ -52,7 +52,7 @@ class AppRoot extends React.Component {
   }
 
   _onDialogSubmit() {
-    this.setState({ userRoutes: ["1", "2"] });
+    //this.setState({ userRoutes: ["1", "2"] });
     this.refs.dialog.dismiss();
   }
 
