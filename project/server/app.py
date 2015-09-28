@@ -56,10 +56,14 @@ class Websockets(object):
 
     def update(self):
         while True:
-            #location_data = []
-            #location_data.extend(api.get_bus_location(8))
-            #location_data.extend(api.get_bus_location(15))
             location_data = api.get_bus_locations()
+
+            # XXX For debugging. Replay data for when there isn't any.
+            if not location_data:
+                for locations in api.replay_period():
+                    print 'replay updater', locations
+                    for client in self.clients:
+                        gevent.spawn(self.send, client, json.dumps(locations))
 
             if location_data:
                 for client in self.clients:
