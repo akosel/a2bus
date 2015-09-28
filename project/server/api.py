@@ -84,7 +84,11 @@ def get_stop_from_timepoint(timepoint):
             stop = yaml.safe_load(api_redis.get(key))
             if stop['directionName'] == timepoint['routeDirection']:
                 return key
-    return key_list[0]
+    elif len(key_list) == 1:
+        return key_list[0]
+    else:
+        print 'No keys', timepoint, prefix
+        return None
 
 def get_ordered_stops(route, direction):
     glob = '{}.*.{}.*'.format(route, direction)
@@ -149,15 +153,14 @@ def get_last_locations():
 
 # Debugging tool
 def replay_period():
-    start = arrow.Arrow(year=2015, month=9, day=25, hour=9)
-    end = arrow.Arrow(year=2015, month=9, day=25, hour=10)
+    start = arrow.Arrow(year=2015, month=9, day=25, hour=18)
+    end = arrow.Arrow(year=2015, month=9, day=25, hour=20)
     for r in arrow.Arrow.range('minute', start, end):
         locations = get_historical_data(year=r.year, month=r.month, day=r.day, hour=r.hour, minute=r.minute)
         set_last_locations(locations)
         yield locations
-        time.sleep(60)
-
-
+        if locations:
+            time.sleep(60)
 
 def get_historical_data(year='2015', month='09', day='25', hour='09', minute='', second='', modulo=6):
     if type(day) == int:
@@ -225,6 +228,8 @@ def get_nearest_stops(key, lng, lat, radius=150, units='m', with_dist=False, wit
 
 def set_expected_crossing_time(timepoint, pipeline=None):
     stop_key = get_stop_from_timepoint(timepoint)
+    if not stop_key:
+        return False
     stop = yaml.safe_load(api_redis.get(stop_key))
     expected_crossing_time = get_expected_crossing_time(timepoint['crossingTime'], timepoint['adherence'])
     if 'expectedCrossingMinutes' not in stop:
@@ -271,6 +276,8 @@ def set_interpolated_crossing_time(route, direction):
 
         if stop.get('isTimePoint'):
             base_times = stop.get('expectedCrossingMinutes', [])
+            if not base_times:
+                print 'Missing base times for stop: {}'.format(stop)
             seconds = 0
         else:
             seconds += direction_times[direction_idx]

@@ -1,4 +1,21 @@
+** Settings Page
 * Add short references: Downtown A2, Downtown Ypsi, Home, Arborland
 * Add destination search
 * Add custom origin setting
-* Add arrival estimate for non time point stops.
+* Allow user to add routes they care about. IRT that, handle cases where the bus stop is not nearby.
+* Allow user to add stops they care about.
+
+** Map Page
+* Add draggable marker for easier destination setting.
+* Add default location if user is far away (as well as appropriate messaging)
+
+
+** Status Page
+* Move state in StatusItem up to StatusList
+* Determine crossing time with consideration for TOD
+
+** Backend
+* Filter nearby stops so fewer results come in
+
+** General
+* annarbus to Ann ArBus? Ann Arbus?

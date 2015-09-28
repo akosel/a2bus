@@ -55,13 +55,20 @@ class StatusItem extends React.Component {
   }
 
   componentDidMount() {
+    var stop = _(this.props.stops).find(function(stop) { return stop.abbreviation === this.props.routeInfo.routeAbbr && stop.expectedCrossingMinutes.length; }.bind(this));
+    if (!stop) {
+      return;
+    }
+
     var sId = setInterval(function() {
       var adherence = this.props.routeInfo.adherence;
       var hour = moment().hour();
       var minute = moment().minute();
       var second = moment().second();
-      var stopMinutesStr = ['9:04', '9:34']; // TODO Get from user input or historical data
-      var stopMinutes = stopMinutesStr.map(function(v) { var idx = v.indexOf(':') + 1; return Number(v.slice(idx)); });
+      var stopMinutesList = stop.expectedCrossingMinutes; // TODO Get from user input or historical data
+
+      // TODO Check if next stop time is in the same hour we are currently in
+      var stopMinutes = stopMinutesList.map(function(v) { var idx = v.indexOf(':') + 1; return Number(v.slice(idx)); });
 
       var timesToNextStop = stopMinutes.map(function(v) { var next = v - minute - adherence - 1 < 0 ? v + 59 - minute - adherence : v - minute - adherence - 1; return next; });
 
@@ -69,7 +76,7 @@ class StatusItem extends React.Component {
 
       var time = minutesLeft + ':' + moment((59 - second) * 1000).format('ss');
 
-      this.setState({ lastUpdated: sprintf('%s (%s)', this.props.lastUpdated.fromNow(), this.props.lastUpdated.format('lll')), minutesToArrival: time, style: { backgroundColor: this.getBgColor(minutesLeft) } });
+      this.setState({ stopMinutesList: stopMinutesList, lastUpdated: sprintf('%s (%s)', this.props.lastUpdated.fromNow(), this.props.lastUpdated.format('lll')), minutesToArrival: time, style: { backgroundColor: this.getBgColor(minutesLeft) } });
     }.bind(this), 500);
 
     this.getWalkTimeToStop(this.props.stops, this.props.routeInfo);
@@ -93,14 +100,19 @@ class StatusItem extends React.Component {
                 <li className="direction">
                   { this.props.routeInfo.routeDirection }
                 </li>
-                <li className="news">
+                <li className="name">
                   <p>
                     { this.props.routeInfo.timePointName }
                   </p>
                 </li>
                 <li className="news">
                   <p>
-                    Walking Time: { this.state.walkTime }
+                    Walking Time: { this.state.walkTime } minute(s)
+                  </p>
+                </li>
+                <li className="minutes">
+                  <p>
+                    Stop Minutes: { this.state.stopMinutesList } stop minutes
                   </p>
                 </li>
               </ul>
