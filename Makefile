@@ -14,6 +14,9 @@ venv: requirements.txt
 dist: gulpfile.js
 	gulp build
 
+install: dist/bundle.js dist/stylesheet.css
+	cp -r /home/aaronjkosel/projects/a2bus /var/local
+
 clean:
 	rm -rf venv
 	rm -rf node_modules

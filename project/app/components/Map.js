@@ -7,32 +7,71 @@ class Map extends React.Component {
     this.state = {
       map : null,
       lines: {},
-      markers : []
+      markers : [],
+      directionsDisplay: null,
+      destinationMarker: null,
     };
   }
 
   // update geo-encoded markers
-  updateMarkers(stops) {
+  updateMarkers(stops, locations) {
 
     var markers = this.state.markers;
     var map = this.state.map;
 
     // remove everything
-    //markers.forEach( function(marker) {
-    //  marker.setMap(null);
-    //} );
-
+    markers.forEach( function(marker) {
+      marker.setMap(null);
+    } );
+    var currentLocation = new google.maps.LatLng(this.props.initLat, this.props.initLon);
     this.state.markers = [];
+
+    var marker = new google.maps.Marker({
+      position: currentLocation,
+      map: map,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 5,
+      },
+      title: 'Current Location' 
+    });
+    this.state.markers.push(marker);
+
+    if (this.state.destinationMarker) {
+      this.state.destinationMarker.setMap(null);
+    }
+    // TODO this should be set better
+    var dest = new google.maps.LatLng(this.props.initLat + .001, this.props.initLon + .001); 
+    var destinationMarker = new google.maps.Marker({
+      position: dest,
+      draggable: true,
+      map: map,
+      animation: google.maps.Animation.DROP,
+      title: 'Current Location' 
+    });
+    this.setState({ destinationMarker: destinationMarker });
+    destinationMarker.addListener('dragend', function(event) {
+      this.updateTransitLayer(event.latLng);
+    }.bind(this));
+
 
     // add new markers
     stops.forEach( (function( point ) {
 
+      console.log(point);
       var location = new google.maps.LatLng( point.lat, point.lng );
+      var infoWindow = new google.maps.InfoWindow({
+        content: [point.name, point.abbreviation, point.directionName].join('<br>') 
+      });
 
       var marker = new google.maps.Marker({
         position: location,
         map: map,
         title: point.label
+      });
+
+      marker.addListener('click', function() {
+        infoWindow.open(map, marker);
       });
 
       markers.push( marker );
@@ -58,20 +97,25 @@ class Map extends React.Component {
     }
 
     return React.DOM.div({style:style})
+
   }
 
-  updateTransitLayer(map) {
+  updateTransitLayer(destination) {
 
     //var map = this.state.map;
 
+    if (this.state.directionsDisplay) {
+      this.state.directionsDisplay.setMap(null);
+    }
     var directionsDisplay = new google.maps.DirectionsRenderer({
         draggable: true,
-        map: map
+        map: this.state.map
     });
+    this.setState({ directionsDisplay: directionsDisplay });
     var directionsService = new google.maps.DirectionsService();
     var currentLocation = new google.maps.LatLng(this.props.initLat, this.props.initLon);
     var request = {
-      destination: this.props.destination, // TODO add interface to allow user to input destination
+      destination: destination, // TODO add interface to allow user to input destination
       origin: currentLocation,
       waypoints: [],
       travelMode: google.maps.TravelMode.TRANSIT,
@@ -96,19 +140,26 @@ class Map extends React.Component {
 
       this.setState( { map : map } );
       if (this.props.destination) {
-        this.updateTransitLayer(map);
+        this.updateTransitLayer(this.props.destination);
       }
 
-      if( this.props.stops ) this.updateMarkers(this.props.stops);
+      if( this.props.stops ) {
+        this.updateMarkers(this.props.stops);
+      }
 
     }).bind(this);
 
     createMap()
   }
 
-  // update props (ignores the initial ones: initLat, initLon, initZoom)
+  // update props (ignores the initial on: initLat, initLon, initZoom)
   componentWillReceiveProps(props) {
-    if( props.stops ) this.updateMarkers(props.stops);
+    if(props.stops) {
+      this.updateMarkers(props.stops);
+    }
+    if(props.destination) {
+      this.updateTransitLayer(props.destination);
+    }
   }
 
 }

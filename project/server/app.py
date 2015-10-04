@@ -55,17 +55,18 @@ class Websockets(object):
             self.clients.remove(client)
 
     def update(self):
+        debug = False
         while True:
             location_data = api.get_bus_locations()
 
             # XXX For debugging. Replay data for when there isn't any.
-            if not location_data:
+            if debug or not location_data:
                 for locations in api.replay_period():
                     print 'replay updater', locations
                     for client in self.clients:
                         gevent.spawn(self.send, client, json.dumps(locations))
 
-            if location_data:
+            if not debug or location_data:
                 for client in self.clients:
                     gevent.spawn(self.send, client, json.dumps(location_data))
                 s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)

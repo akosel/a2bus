@@ -13,7 +13,12 @@ class StatusItem extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { lateByMessage: '', bgColor: '#eee', minutesToArrival: undefined };
+    this.state = { 
+      lateByMessage: '', 
+      bgColor: '#eee', 
+      minutesToArrival: undefined,
+      stopMinutesList: []
+    };
     this.getBgColor = this.getBgColor.bind(this);
     this.getWalkTimeToStop = this.getWalkTimeToStop.bind(this);
   }
@@ -74,9 +79,9 @@ class StatusItem extends React.Component {
 
       var minutesLeft = _(timesToNextStop).min();
 
-      var time = minutesLeft + ':' + moment((59 - second) * 1000).format('ss');
+      var time = minutesLeft ? minutesLeft + ':' + moment((59 - second) * 1000).format('ss') : undefined;
 
-      this.setState({ stopMinutesList: stopMinutesList, lastUpdated: sprintf('%s (%s)', this.props.lastUpdated.fromNow(), this.props.lastUpdated.format('lll')), minutesToArrival: time, style: { backgroundColor: this.getBgColor(minutesLeft) } });
+      this.setState({ stopMinutesList: _(stopMinutesList).sortBy(function(time) { return parseInt(time); }), lastUpdated: sprintf('%s (%s)', this.props.lastUpdated.fromNow(), this.props.lastUpdated.format('lll')), minutesToArrival: time, style: { backgroundColor: this.getBgColor(minutesLeft) } });
     }.bind(this), 500);
 
     this.getWalkTimeToStop(this.props.stops, this.props.routeInfo);
@@ -87,7 +92,7 @@ class StatusItem extends React.Component {
         <div className="status-item clearfix">
           <Card style={ this.state.style } initiallyExpanded={false}>
             <CardHeader
-              title={ this.state.minutesToArrival }
+              title={ this.state.minutesToArrival || 'No expected crossing time' }
               subtitle={ this.props.lateByMessage }
               avatar={<Avatar>{this.props.routeInfo.routeAbbr}</Avatar>}
               showExpandableButton={true}>
@@ -95,14 +100,18 @@ class StatusItem extends React.Component {
             <CardText expandable={true}>
               <ul>
                 <li className="timestamp">
-                  { this.state.lastUpdated }
+                  <p>
+                    Last Updated: { this.state.lastUpdated }
+                  </p>
                 </li>
                 <li className="direction">
-                  { this.props.routeInfo.routeDirection }
+                  <p>
+                    Route Direction: { this.props.routeInfo.routeDirection }
+                  </p>
                 </li>
                 <li className="name">
                   <p>
-                    { this.props.routeInfo.timePointName }
+                    Last Location: { this.props.routeInfo.timePointName }
                   </p>
                 </li>
                 <li className="news">
@@ -112,7 +121,7 @@ class StatusItem extends React.Component {
                 </li>
                 <li className="minutes">
                   <p>
-                    Stop Minutes: { this.state.stopMinutesList } stop minutes
+                    Stop Minutes: { this.state.stopMinutesList.join(', ') }
                   </p>
                 </li>
               </ul>

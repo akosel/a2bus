@@ -35,6 +35,17 @@ api.getNearbyStops = function(userPosition, callback) {
   });
 };
 
+api.getRouteNames = function(callback) {
+  var url = [base, 'routenames'].join('/');
+  this.get(url, function(xhr) {
+    var routeNames = xhr && _(xhr.response).isString() ? JSON.parse(xhr.response) : [];
+    if (typeof xhr.response === 'object') {
+        routeNames = xhr.response;
+    }
+    callback(routeNames);
+  });
+};
+
 api.getLastLocations = function(callback) {
   var url = [base, 'lastlocations'].join('/');
   this.get(url, function(xhr) {
