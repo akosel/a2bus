@@ -42,4 +42,8 @@ class  StatusList extends React.Component {
   }
 }
 
+StatusList.defaultProps = {
+  slice: []
+};
+
 export default StatusList;

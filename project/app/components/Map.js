@@ -29,11 +29,7 @@ class Map extends React.Component {
     var marker = new google.maps.Marker({
       position: currentLocation,
       map: map,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 5,
-      },
-      title: 'Current Location' 
+      title: 'Current Location'
     });
     this.state.markers.push(marker);
 
@@ -41,32 +37,45 @@ class Map extends React.Component {
       this.state.destinationMarker.setMap(null);
     }
     // TODO this should be set better
-    var dest = new google.maps.LatLng(this.props.initLat + .001, this.props.initLon + .001); 
+    var dest = this.state.draggableMarker ? this.state.draggableMarker : new google.maps.LatLng(this.props.initLat + .001, this.props.initLon + .001);
     var destinationMarker = new google.maps.Marker({
       position: dest,
       draggable: true,
       map: map,
       animation: google.maps.Animation.DROP,
-      title: 'Current Location' 
+      title: 'Current Location'
     });
     this.setState({ destinationMarker: destinationMarker });
+
+    if (!this.state.draggableMarker) {
+      var infoWindow = new google.maps.InfoWindow({
+        content: 'Drag me to set your destination!'
+      });
+      infoWindow.open(map, destinationMarker);
+    }
     destinationMarker.addListener('dragend', function(event) {
       this.updateTransitLayer(event.latLng);
+      if (infoWindow) {
+        infoWindow.close();
+      }
     }.bind(this));
 
 
     // add new markers
     stops.forEach( (function( point ) {
 
-      console.log(point);
       var location = new google.maps.LatLng( point.lat, point.lng );
       var infoWindow = new google.maps.InfoWindow({
-        content: [point.name, point.abbreviation, point.directionName].join('<br>') 
+        content: [point.name, point.abbreviation, point.directionName].join('<br>')
       });
 
       var marker = new google.maps.Marker({
         position: location,
         map: map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 5,
+        },
         title: point.label
       });
 
@@ -108,8 +117,9 @@ class Map extends React.Component {
       this.state.directionsDisplay.setMap(null);
     }
     var directionsDisplay = new google.maps.DirectionsRenderer({
-        draggable: true,
-        map: this.state.map
+      draggable: true,
+      suppressMarkers: true,
+      map: this.state.map
     });
     this.setState({ directionsDisplay: directionsDisplay });
     var directionsService = new google.maps.DirectionsService();
@@ -123,9 +133,16 @@ class Map extends React.Component {
     directionsService.route(request, function(result, status) {
       if (status == google.maps.DirectionsStatus.OK) {
         console.log('setting directions', result);
+        if (result && result.routes 
+            && result.routes.length
+            && result.routes[0]
+            && result.routes[0].legs
+            && result.routes[0].legs.length) {
+          this.setState({ draggableMarker: result.routes[0].legs[0].end_location });
+        }
         directionsDisplay.setDirections(result);
       }
-    });
+    }.bind(this));
   }
 
   componentDidMount() {

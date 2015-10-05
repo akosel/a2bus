@@ -177,7 +177,12 @@ class AppRoot extends React.Component {
           style={{ position: 'relative' }} /* XXX used to get stacking to work. warning, may affect mobile scroll smoothness! */
           onLeftIconButtonTouchTap={this.showLeftNav}
           iconElementRight={<FlatButton onClick={this.viewToggleClick} label={this.state.label}/>} />
-        <LeftNav onChange={this._onLeftNavChange} ref='leftNav' docked={false} menuItems={menuItems} />
+        <LeftNav
+          onChange={this._onLeftNavChange}
+          ref='leftNav'
+          docked={false}
+          disableSwipeToOpen={true}
+          menuItems={menuItems} />
         <Snackbar
           message="Do something"
           action="undo"/>
@@ -209,7 +214,7 @@ class AppRoot extends React.Component {
           openImmediately={false}
           modal={false}>
           <TextField
-            hintText="For example, Blake Transit Center, Ypsilanti"
+            hintText="i.e. Blake Transit Center, Ypsilanti"
             ref="destinationInput"/>
         </Dialog>
         <main>

@@ -79,7 +79,7 @@ class StatusItem extends React.Component {
 
       var minutesLeft = _(timesToNextStop).min();
 
-      var time = minutesLeft ? minutesLeft + ':' + moment((59 - second) * 1000).format('ss') : undefined;
+      var time = !_(minutesLeft).isUndefined() ? minutesLeft + ':' + moment((59 - second) * 1000).format('ss') : undefined;
 
       this.setState({ stopMinutesList: _(stopMinutesList).sortBy(function(time) { return parseInt(time); }), lastUpdated: sprintf('%s (%s)', this.props.lastUpdated.fromNow(), this.props.lastUpdated.format('lll')), minutesToArrival: time, style: { backgroundColor: this.getBgColor(minutesLeft) } });
     }.bind(this), 500);
