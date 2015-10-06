@@ -11,7 +11,7 @@ class StatusBox extends React.Component {
     return (
       <div id="status">
         <p>{this.props.userMessage}</p>
-        <StatusList stops={this.props.stops} lat={this.props.initLat} lng={this.props.initLon} slice={this.props.data} />
+        <StatusList stops={this.props.stops} lat={this.props.initLat} lng={this.props.initLon} slice={this.props.locations} />
       </div>
     );
   }

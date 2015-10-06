@@ -5,22 +5,6 @@ import _ from 'underscore';
 window.onload = function() {
   var attachElement = document.querySelector('body');
 
-  function getParsedKey(key) {
-    var keys = ['routeAbbr', 'stopID', 'directionID'];
-    var values = key.split('.');
-    return _(keys).object(values);
-  }
-
-  function getBusLocations(routes) {
-    return _(routes).filter(function(route) {
-      return route.routeAbbr;
-    });
-  }
-
-  navigator.geolocation.watchPosition(function(position) {
-    api.getNearbyStops(position, function(v) { console.log('watchPosition callback: ', v); })
-  });
-
   navigator.geolocation.getCurrentPosition(function(position) {
     api.getNearbyStops(position, function(stopKeys) {
 
@@ -42,9 +26,9 @@ window.onload = function() {
     });
   }, function(positionError) {
     var state = {
-      position: { coords: { longitude: 42.267, latitude: -83.770 }},
+      position: { coords: { latitude: 42.267, longitude: -83.770 }},
       stops: [],
-      userRoutes: userRoutes,
+      userRoutes: [],
       positionError: positionError
     };
     var app = new App({

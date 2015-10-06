@@ -26,6 +26,60 @@ class Map extends React.Component {
     var currentLocation = new google.maps.LatLng(this.props.initLat, this.props.initLon);
     this.state.markers = [];
 
+
+
+    // add new markers
+    stops.forEach( (function( point ) {
+
+      var location = new google.maps.LatLng( point.lat, point.lng );
+      var infoWindow = new google.maps.InfoWindow({
+        content: [point.name, point.abbreviation, point.directionName].join('<br>')
+      });
+
+      var marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 5,
+        },
+        title: point.label
+      });
+
+      marker.addListener('click', function() {
+        infoWindow.open(map, marker);
+      });
+
+      markers.push( marker );
+
+    }) );
+
+    locations.forEach( (function( point ) {
+
+      var location = new google.maps.LatLng( point.lat, point.lng );
+      var infoWindow = new google.maps.InfoWindow({
+        content: [point.name, point.abbreviation, point.directionName].join('<br>')
+      });
+
+      var marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 5,
+        },
+        title: point.label
+      });
+
+      marker.addListener('click', function() {
+        infoWindow.open(map, marker);
+      });
+
+      markers.push( marker );
+
+    }) );
+    this.setState({ markers : markers });
+
     var marker = new google.maps.Marker({
       position: currentLocation,
       map: map,
@@ -59,35 +113,6 @@ class Map extends React.Component {
         infoWindow.close();
       }
     }.bind(this));
-
-
-    // add new markers
-    stops.forEach( (function( point ) {
-
-      var location = new google.maps.LatLng( point.lat, point.lng );
-      var infoWindow = new google.maps.InfoWindow({
-        content: [point.name, point.abbreviation, point.directionName].join('<br>')
-      });
-
-      var marker = new google.maps.Marker({
-        position: location,
-        map: map,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 5,
-        },
-        title: point.label
-      });
-
-      marker.addListener('click', function() {
-        infoWindow.open(map, marker);
-      });
-
-      markers.push( marker );
-
-    }) );
-
-    this.setState({ markers : markers });
   }
 
   updateZoom(newZoom) {
@@ -160,8 +185,8 @@ class Map extends React.Component {
         this.updateTransitLayer(this.props.destination);
       }
 
-      if( this.props.stops ) {
-        this.updateMarkers(this.props.stops);
+      if(this.props) {
+        this.updateMarkers(this.props.stops, this.props.locations);
       }
 
     }).bind(this);
@@ -171,8 +196,8 @@ class Map extends React.Component {
 
   // update props (ignores the initial on: initLat, initLon, initZoom)
   componentWillReceiveProps(props) {
-    if(props.stops) {
-      this.updateMarkers(props.stops);
+    if(props) {
+      this.updateMarkers(props.stops, props.locations);
     }
     if(props.destination) {
       this.updateTransitLayer(props.destination);

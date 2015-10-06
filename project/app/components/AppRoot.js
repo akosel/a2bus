@@ -30,9 +30,23 @@ var menuItems = [
 //https://github.com/zilverline/react-tap-event-plugin
 injectTapEventPlugin();
 
+var A2_LAT = 42.267;
+var A2_LNG = -83.770;
+
 class AppRoot extends React.Component {
   constructor(props) {
     super(props);
+
+    var distanceFromAnnArbor = this._getDistance(this.props.state.position.coords.latitude, this.props.state.position.coords.longitude, A2_LAT, A2_LNG);
+    var position, message, isFarAway;
+    if (distanceFromAnnArbor > 50) {
+      position = { coords: { longitude: A2_LNG, latitude: A2_LAT }};
+      message = 'Woah nelly! Looks like you are pretty far from Ann Arbor. Unfortunately, this is designed to work specifically in Ann Arbor. However, for demo purposes, we will set your location to a location in Ann Arbor';
+      isFarAway = true;
+    } else {
+      position = this.props.state.position;
+      isFarAway = false;
+    }
     this.state = {
       activeView: 'Status',
       modal: false,
@@ -41,6 +55,9 @@ class AppRoot extends React.Component {
       destination: '',
       routeList: [],
       locations: [],
+      warningMessage: message,
+      isFarAway: isFarAway,
+      position: position,
       stops: this.props.state.stops,
     };
     this.viewToggleClick = this.viewToggleClick.bind(this);
@@ -69,6 +86,43 @@ class AppRoot extends React.Component {
     return {
       muiTheme: tm.getCurrentTheme()
     };
+  }
+
+  _getDistance(lat1, lon1, lat2, lon2) {
+
+    function _toRad(value) {
+      return value * Math.PI / 180;
+    }
+    var R = 6371; // km
+    var dLat = _toRad(lat2-lat1);
+    var dLon = _toRad(lon2-lon1);
+    var lat1 = _toRad(lat1);
+    var lat2 = _toRad(lat2);
+
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var d = R * c;
+    return d;
+  }
+
+  getMobileOperatingSystem() {
+    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+    if( userAgent.match( /iPad/i ) || userAgent.match( /iPhone/i ) || userAgent.match( /iPod/i ) )
+    {
+      return 'iOS';
+
+    }
+    else if( userAgent.match( /Android/i ) )
+    {
+
+      return 'Android';
+    }
+    else
+    {
+      return 'unknown';
+    }
   }
 
   _onSettingsSubmit() {
@@ -151,15 +205,29 @@ class AppRoot extends React.Component {
       var activeRoutes = status && status.data && _(status.data).isString() ? JSON.parse(status.data) : [];
       this.updateActiveRoutes(activeRoutes);
     }.bind(this);
+
+    if (!this.state.isFarAway) {
+      navigator.geolocation.watchPosition(function(position) {
+        api.getNearbyStops(position, function(stops) {
+          var userRoutes = _(stops).chain()
+            .map(function(stop) {
+              return stop.abbreviation;
+            })
+            .uniq()
+            .value();
+          this.setState({ userRoutes: userRoutes });
+        }.bind(this))
+      }.bind(this));
+    }
     api.getLastLocations(this.updateActiveRoutes);
     api.getRouteNames(function(routeList) {
       this.setState({ routeList: _(routeList).sortBy(function(route) { return parseInt(route.routeAbbr); }) });
     }.bind(this));
+    //window.localStorage.setItem('greeted', true);
   }
 
   render() {
     var checkboxes = [];
-    window.localStorage.setItem('greeted', true);
     this.state.routeList.forEach(function(v) {
       checkboxes.push(
         <Checkbox
@@ -193,7 +261,8 @@ class AppRoot extends React.Component {
           actionFocus="ok"
           openImmediately={window.localStorage.getItem('greeted') ? false : true}
           modal={this.state.modal}>
-          This site can be used to quickly find information about buses near you.
+          <p>{this.state.warningMessage}</p>
+          <p>This site can be used to quickly find information about buses near you.</p>
         </Dialog>
         <Dialog
           title="Settings"
@@ -219,10 +288,10 @@ class AppRoot extends React.Component {
         </Dialog>
         <main>
           <div className={"map-box" + (this.state.activeView === 'Map' ? ' visible' : '')}>
-            <Map ref="map" destination={this.state.destination} stops={this.props.state.stops} initLat={this.props.state.position.coords.latitude} initLon={this.props.state.position.coords.longitude} initZoom={16} width='100%' height='100%'></Map>
+            <Map ref="map" locations={this.state.locations} destination={this.state.destination} stops={this.props.state.stops} initLat={this.props.state.position.coords.latitude} initLon={this.props.state.position.coords.longitude} initZoom={16} width='100%' height='100%'></Map>
           </div>
           <div className={"status-box" + (this.state.activeView === 'Status' ? ' visible' : '')}>
-            <StatusBox data={this.state.locations} userMessage={this.state.userMessage} stops={this.state.stops} initLat={this.props.state.position.coords.latitude} initLon={this.props.state.position.coords.longitude} positionError={this.props.state.positionError} ref="status"></StatusBox>
+            <StatusBox locations={this.state.locations} userMessage={this.state.userMessage} stops={this.state.stops} initLat={this.state.position.coords.latitude} initLon={this.state.position.coords.longitude} positionError={this.props.state.positionError} ref="status"></StatusBox>
           </div>
         </main>
       </div>;

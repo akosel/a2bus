@@ -162,7 +162,7 @@ def replay_period():
         if locations:
             time.sleep(60)
 
-def get_historical_data(year='2015', month='09', day='25', hour='09', minute='', second='', modulo=6):
+def get_historical_data(year='2015', month='10', day='01', hour='09', minute='', second='', modulo=6):
     if type(day) == int:
         day = str(day).zfill(2)
 
@@ -188,6 +188,11 @@ def get_historical_data(year='2015', month='09', day='25', hour='09', minute='',
             location_dict[key.key] = key.get_contents_as_string()
         idx += 1
     location_values = [v for location_list in location_dict.values() for v in yaml.safe_load(location_list)]
+    for location in locations_values:
+        raw_lat = location.get(LAT_KEY) or location.get(LAT_KEY_NEW)
+        raw_lng = location.get(LNG_KEY)
+        location['lat'] = get_parsed_coordinate(raw_lat)
+        location['lng'] = get_parsed_coordinate(raw_lng)
     return location_values
 
 def get_stop_details(stops):
