@@ -12,6 +12,8 @@ venv: requirements.txt
 	venv/bin/pip install python-geohash
 
 dist: gulpfile.js
+	mkdir -p /home/aaronjkosel/projects/a2bus/dist/icons
+	cp /home/aaronjkosel/projects/a2bus/project/client/icons/* /home/aaronjkosel/projects/a2bus/dist/icons
 	gulp build
 
 install: dist/bundle.js dist/stylesheet.css
