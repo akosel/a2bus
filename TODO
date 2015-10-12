@@ -1,18 +1,6 @@
-** Settings Page
-* Add short references: Downtown A2, Downtown Ypsi, Home, Arborland
-* Add destination search
-* Add custom origin setting
-* Allow user to add routes they care about. IRT that, handle cases where the bus stop is not nearby.
-* Allow user to add stops they care about.
-
-** Map Page
-* Add draggable marker for easier destination setting.
-* Add default location if user is far away (as well as appropriate messaging)
-
-
-** Status Page
-* Move state in StatusItem up to StatusList
-* Determine crossing time with consideration for TOD
-
-** Backend
-* Filter nearby stops so fewer results come in
+* Incorporate bus lateness to Google expected departure time
+* Find way of determining which bus on a route is nearest to a stop
+  * After that, incorporate stop time into stop color
+* Better position watching on user (do not constantly redraw, but give user feedback
+  about where they are)
+* Write a README
