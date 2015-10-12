@@ -13,9 +13,9 @@ class StatusItem extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { 
-      lateByMessage: '', 
-      bgColor: '#eee', 
+    this.state = {
+      lateByMessage: '',
+      bgColor: '#eee',
       minutesToArrival: undefined,
       stopMinutesList: []
     };
@@ -23,21 +23,29 @@ class StatusItem extends React.Component {
 
   render() {
       var substeps = [];
-      this.props.step.steps.map(function(step, idx) {
-        substeps.push(<li dangerouslySetInnerHTML={{__html: step.instructions}}></li>);
-      });
+      if (this.props.step.steps) {
+        this.props.step.steps.map(function(step, idx) {
+          substeps.push(<li dangerouslySetInnerHTML={{__html: step.instructions}}></li>);
+        });
+      }
+      if (this.props.step.travel_mode === 'TRANSIT') {
+        var departureTime = this.props.step.transit.departure_time.text;
+        var routeAbbreviation = this.props.step.transit.line.short_name;
+        var routeName = this.props.step.transit.line.name;
+        var title = sprintf('Take bus %s (%s) at %s', routeAbbreviation, routeName, departureTime);
+      }
       return (
         <div className="status-item clearfix">
           <Card initiallyExpanded={false}>
             <CardHeader
-              title={ this.props.step.instructions || 'No expected crossing time' }
+              title={ title || this.props.step.instructions }
               subtitle={ this.props.step.duration.text }
               avatar={<Avatar>{this.props.stepNumber}</Avatar>}
               showExpandableButton={true}>
             </CardHeader>
             <CardText expandable={true}>
               <ul>
-                {substeps} 
+                {substeps}
               </ul>
             </CardText>
           </Card>
