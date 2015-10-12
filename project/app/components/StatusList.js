@@ -34,9 +34,7 @@ class  StatusList extends React.Component {
     }.bind(this));
     return (
       <div className='status-list'>
-        <ReactCSSTransitionGroup transitionName="fade">
-          {statusNodes}
-        </ReactCSSTransitionGroup>
+        {statusNodes}
       </div>
     );
   }

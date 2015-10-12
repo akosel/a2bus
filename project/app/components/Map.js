@@ -1,4 +1,7 @@
 import React from 'react/addons';
+import sprintf from 'underscore.string/sprintf';
+
+import dispatcher from '../dispatcher';
 
 class Map extends React.Component {
 
@@ -10,7 +13,34 @@ class Map extends React.Component {
       markers : [],
       directionsDisplay: null,
       destinationMarker: null,
+      originMarker: null,
     };
+
+  }
+
+  getLateBy(adherence) {
+    var lateByMessage = 'On time';
+    var unitOfTime = 'minutes';
+
+    if (Math.abs(adherence) === 1) {
+      unitOfTime = 'minute';
+    }
+    if (adherence > 0) {
+      lateByMessage = sprintf('%s %s ahead', adherence, unitOfTime);
+    } else if (adherence < 0) {
+      lateByMessage = sprintf('%s %s late', Math.abs(adherence), unitOfTime);
+    }
+    return lateByMessage;
+  }
+
+  getColor(adherence) {
+    if (adherence > 0) {
+      return '#0F0';
+    } else if (adherence < 0) {
+      return '#F00';
+    } else {
+      return '#FFF';
+    }
   }
 
   // update geo-encoded markers
@@ -23,7 +53,6 @@ class Map extends React.Component {
     markers.forEach( function(marker) {
       marker.setMap(null);
     } );
-    var currentLocation = new google.maps.LatLng(this.props.initLat, this.props.initLon);
     this.state.markers = [];
 
 
@@ -41,6 +70,8 @@ class Map extends React.Component {
         map: map,
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
+          strokeColor: this.getColor(point.adherence),
+          fillColor: this.getColor(point.adherence),
           scale: 5,
         },
         title: point.label
@@ -52,22 +83,23 @@ class Map extends React.Component {
 
       markers.push( marker );
 
-    }) );
+    }.bind(this)) );
 
     locations.forEach( (function( point ) {
 
       var location = new google.maps.LatLng( point.lat, point.lng );
       var infoWindow = new google.maps.InfoWindow({
-        content: [point.name, point.abbreviation, point.directionName].join('<br>')
+        content: [point.timePointName, point.routeAbbr, point.routeDirection, this.getLateBy(point.adherence)].join('<br>')
       });
+      var image = {
+        url: '/dist/icons/favIcon_32x32.ico',
+        size: new google.maps.Size(32, 32),
+      };
 
       var marker = new google.maps.Marker({
         position: location,
         map: map,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 5,
-        },
+        icon: image,
         title: point.label
       });
 
@@ -77,42 +109,56 @@ class Map extends React.Component {
 
       markers.push( marker );
 
-    }) );
+    }.bind(this)) );
     this.setState({ markers : markers });
 
-    var marker = new google.maps.Marker({
-      position: currentLocation,
-      map: map,
-      title: 'Current Location'
-    });
-    this.state.markers.push(marker);
-
-    if (this.state.destinationMarker) {
-      this.state.destinationMarker.setMap(null);
-    }
-    // TODO this should be set better
-    var dest = this.state.draggableMarker ? this.state.draggableMarker : new google.maps.LatLng(this.props.initLat + .001, this.props.initLon + .001);
-    var destinationMarker = new google.maps.Marker({
-      position: dest,
-      draggable: true,
-      map: map,
-      animation: google.maps.Animation.DROP,
-      title: 'Current Location'
-    });
-    this.setState({ destinationMarker: destinationMarker });
-
-    if (!this.state.draggableMarker) {
-      var infoWindow = new google.maps.InfoWindow({
-        content: 'Drag me to set your destination!'
+    if (!this.state.originMarker && map) {
+      var currentLocation = new google.maps.LatLng(this.props.initLat, this.props.initLon);
+      var marker = new google.maps.Marker({
+        position: currentLocation,
+        map: map,
+        label: {
+          fontSize: '12px',
+          text: '\u25B6',
+        },
+        draggable: true,
+        title: 'Current Location'
       });
-      infoWindow.open(map, destinationMarker);
+      this.setState({ originMarker: marker });
+      marker.addListener('dragend', function(event) {
+        this.updateTransitLayer(event.latLng);
+      }.bind(this));
     }
-    destinationMarker.addListener('dragend', function(event) {
-      this.updateTransitLayer(event.latLng);
-      if (infoWindow) {
-        infoWindow.close();
+
+    if (!this.state.destinationMarker && map) {
+      // TODO this should be set better
+      var dest = this.state.draggableMarker ? this.state.draggableMarker : new google.maps.LatLng(42.2795334, -83.747347);
+      var destinationMarker = new google.maps.Marker({
+        position: dest,
+        draggable: true,
+        map: map,
+        label: {
+          fontSize: '16px',
+          text: '\u25A0',
+        },
+        animation: google.maps.Animation.DROP,
+        title: 'Destination'
+      });
+      this.setState({ destinationMarker: destinationMarker });
+      if (!this.state.draggableMarker) {
+        var infoWindow = new google.maps.InfoWindow({
+          content: 'Drag me to set your destination! \nI\'m currently in downtown Ann Arbor, but you can drag it anywhere.'
+        });
+        infoWindow.open(map, destinationMarker);
       }
-    }.bind(this));
+      destinationMarker.addListener('dragend', function(event) {
+        this.updateTransitLayer(event.latLng);
+        if (infoWindow) {
+          infoWindow.close();
+        }
+      }.bind(this));
+    }
+
   }
 
   updateZoom(newZoom) {
@@ -148,7 +194,19 @@ class Map extends React.Component {
     });
     this.setState({ directionsDisplay: directionsDisplay });
     var directionsService = new google.maps.DirectionsService();
-    var currentLocation = new google.maps.LatLng(this.props.initLat, this.props.initLon);
+    var currentLocation, destination;
+    if (!this.state.originMarker) {
+      currentLocation = new google.maps.LatLng(this.props.initLat, this.props.initLon);
+    } else {
+      currentLocation = this.state.originMarker.getPosition();
+    }
+    if (!this.state.destinationMarker && destination) {
+      destination = destination;
+    } else if (this.state.destinationMarker) {
+      destination = this.state.destinationMarker.getPosition();
+    } else {
+      console.log('No destination available');
+    }
     var request = {
       destination: destination, // TODO add interface to allow user to input destination
       origin: currentLocation,
@@ -158,12 +216,17 @@ class Map extends React.Component {
     directionsService.route(request, function(result, status) {
       if (status == google.maps.DirectionsStatus.OK) {
         console.log('setting directions', result);
-        if (result && result.routes 
+        if (result && result.routes
             && result.routes.length
             && result.routes[0]
             && result.routes[0].legs
             && result.routes[0].legs.length) {
           this.setState({ draggableMarker: result.routes[0].legs[0].end_location });
+          dispatcher.dispatch({
+            type: 'directionsUpdate',
+            data:result
+          });
+
         }
         directionsDisplay.setDirections(result);
       }
@@ -188,6 +251,7 @@ class Map extends React.Component {
       if(this.props) {
         this.updateMarkers(this.props.stops, this.props.locations);
       }
+
 
     }).bind(this);
 

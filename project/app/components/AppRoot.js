@@ -1,11 +1,12 @@
 import React from 'react/addons';
 import Map from './Map';
-import StatusBox from './StatusBox';
+import DirectionsBox from './DirectionsBox';
 import api from '../scripts/api';
 import _ from 'underscore';
 import sprintf from 'underscore.string/sprintf';
 import toSentence from 'underscore.string/toSentence';
 import moment from 'moment';
+import dispatcher from '../dispatcher';
 
 import injectTapEventPlugin from 'react-tap-event-plugin';
 import ThemeManager from 'material-ui/lib/styles/theme-manager';
@@ -48,9 +49,9 @@ class AppRoot extends React.Component {
       isFarAway = false;
     }
     this.state = {
-      activeView: 'Status',
+      activeView: 'Map',
       modal: false,
-      label: 'Show Map',
+      label: '',
       userRoutes: this.props.state.userRoutes,
       destination: '',
       routeList: [],
@@ -156,9 +157,9 @@ class AppRoot extends React.Component {
 
   viewToggleClick() {
     if (this.state.activeView === 'Map') {
-      this.setState({ activeView: 'Status', label: 'Show Map' });
+      this.setState({ activeView: 'Directions', label: 'Hide Directions' });
     } else {
-      this.setState({ activeView: 'Map', label: 'Hide Map' });
+      this.setState({ activeView: 'Map', label: 'Show Directions' });
     }
   }
 
@@ -206,18 +207,31 @@ class AppRoot extends React.Component {
       this.updateActiveRoutes(activeRoutes);
     }.bind(this);
 
+    dispatcher.register(function(payload) {
+      if (payload.type === 'directionsUpdate') {
+        console.log(payload);
+        var routes = payload.data.routes;
+        if (routes && routes.length === 1) {
+          var route = routes[0];
+          var steps = route.legs[0].steps;
+          console.log(steps);
+          this.setState({ steps: steps, label: 'Show Directions' });
+        }
+      }
+    }.bind(this));
+
     if (!this.state.isFarAway) {
-      navigator.geolocation.watchPosition(function(position) {
-        api.getNearbyStops(position, function(stops) {
-          var userRoutes = _(stops).chain()
-            .map(function(stop) {
-              return stop.abbreviation;
-            })
-            .uniq()
-            .value();
-          this.setState({ userRoutes: userRoutes });
-        }.bind(this))
-      }.bind(this));
+      //navigator.geolocation.watchPosition(function(position) {
+      //  api.getNearbyStops(position, function(stops) {
+      //    var userRoutes = _(stops).chain()
+      //      .map(function(stop) {
+      //        return stop.abbreviation;
+      //      })
+      //      .uniq()
+      //      .value();
+      //    this.setState({ userRoutes: userRoutes });
+      //  }.bind(this))
+      //}.bind(this));
     }
     api.getLastLocations(this.updateActiveRoutes);
     api.getRouteNames(function(routeList) {
@@ -288,10 +302,10 @@ class AppRoot extends React.Component {
         </Dialog>
         <main>
           <div className={"map-box" + (this.state.activeView === 'Map' ? ' visible' : '')}>
-            <Map ref="map" locations={this.state.locations} destination={this.state.destination} stops={this.props.state.stops} initLat={this.props.state.position.coords.latitude} initLon={this.props.state.position.coords.longitude} initZoom={16} width='100%' height='100%'></Map>
+            <Map ref="map" locations={this.state.locations} destination={this.state.destination} stops={this.props.state.stops} initLat={this.props.state.position.coords.latitude} initLon={this.props.state.position.coords.longitude} initZoom={14} width='100%' height='100%'></Map>
           </div>
-          <div className={"status-box" + (this.state.activeView === 'Status' ? ' visible' : '')}>
-            <StatusBox locations={this.state.locations} userMessage={this.state.userMessage} stops={this.state.stops} initLat={this.state.position.coords.latitude} initLon={this.state.position.coords.longitude} positionError={this.props.state.positionError} ref="status"></StatusBox>
+          <div className={"directions-box" + (this.state.activeView === 'Directions' ? ' visible' : '' )}>
+            <DirectionsBox steps={this.state.steps}/>
           </div>
         </main>
       </div>;

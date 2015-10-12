@@ -5,6 +5,13 @@ $media-tablet: "only screen and (max-width: 720px)";
 $media-phone: "only screen and (max-width: 400px)";
 $nav-height: 50px;
 
+/* FONTS */
+@font-face {
+  font-family: ModernPictograms;
+  src: url("/dist/fonts/modernpics.otf") format("opentype");
+}
+
+
 /* MIXINS */
 @mixin transition($args...) {
   -webkit-transition: $args;
@@ -30,6 +37,17 @@ body {
 }
 
 .status-box {
+  position: relative;
+  top: 0;
+  left: 0;
+
+  margin: 0 auto;
+  padding-top: $nav-height;
+  height: 100%;
+  @include transform(translate3d(0, -120%, 0));
+}
+
+.directions-box {
   position: relative;
   top: 0;
   left: 0;

@@ -62,7 +62,6 @@ class Websockets(object):
             # XXX For debugging. Replay data for when there isn't any.
             if debug or not location_data:
                 for locations in api.replay_period():
-                    print 'replay updater', locations
                     for client in self.clients:
                         gevent.spawn(self.send, client, json.dumps(locations))
 
@@ -70,7 +69,6 @@ class Websockets(object):
                 for client in self.clients:
                     gevent.spawn(self.send, client, json.dumps(location_data))
                 s3.save_list('locations.{0}'.format(time.strftime('%Y%m%dT%H%M%S')), location_data)
-                print "New location data available", location_data
                 api.set_last_locations(location_data)
             time.sleep(60)
 
