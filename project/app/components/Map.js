@@ -147,7 +147,7 @@ class Map extends React.Component {
       this.setState({ destinationMarker: destinationMarker });
       if (!this.state.draggableMarker) {
         var infoWindow = new google.maps.InfoWindow({
-          content: 'Drag me to set your destination! \nI\'m currently in downtown Ann Arbor, but you can drag it anywhere.'
+          content: 'Drag me to set your destination!'
         });
         infoWindow.open(map, destinationMarker);
       }

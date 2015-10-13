@@ -36,14 +36,15 @@ class StatusItem extends React.Component {
       }
       return (
         <div className="status-item clearfix">
-          <Card initiallyExpanded={false}>
+          <Card initiallyExpanded={true}>
             <CardHeader
-              title={ title || this.props.step.instructions }
+              title=""
               subtitle={ this.props.step.duration.text }
               avatar={<Avatar>{this.props.stepNumber}</Avatar>}
               showExpandableButton={true}>
             </CardHeader>
             <CardText expandable={true}>
+              <h3>{ title || this.props.step.instructions }</h3>
               <ul>
                 {substeps}
               </ul>

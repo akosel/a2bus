@@ -170,7 +170,7 @@ class AppRoot extends React.Component {
 
     console.log('STATUS BOX DEBUG: ', activeRoutes);
     var userMessage = this.getUserMessage(activeRoutes, userActiveRoutes);
-    this.setState({ userMessage: userMessage, locations: userActiveRoutes });
+    this.setState({ allRoutes: activeRoutes, userMessage: userMessage, locations: userActiveRoutes });
   }
 
   getUserMessage(allRoutes, userActiveRoutes) {
@@ -214,8 +214,19 @@ class AppRoot extends React.Component {
         if (routes && routes.length === 1) {
           var route = routes[0];
           var steps = route.legs[0].steps;
-          console.log(steps);
-          this.setState({ steps: steps, label: 'Show Directions' });
+          var userRoutes = _(steps).chain()
+                                    .map(function(step) {
+                                      if (step.travel_mode === 'TRANSIT') {
+                                        return step.transit.line.short_name;
+                                      }
+                                      return false;
+                                    })
+                                    .compact().value();
+          console.log(steps, userRoutes);
+
+
+          this.setState({ userRoutes: userRoutes, steps: steps, label: 'Show Directions' });
+          this.updateActiveRoutes(this.state.allRoutes);
         }
       }
     }.bind(this));
@@ -302,7 +313,7 @@ class AppRoot extends React.Component {
         </Dialog>
         <main>
           <div className={"map-box" + (this.state.activeView === 'Map' ? ' visible' : '')}>
-            <Map ref="map" locations={this.state.locations} destination={this.state.destination} stops={this.props.state.stops} initLat={this.props.state.position.coords.latitude} initLon={this.props.state.position.coords.longitude} initZoom={14} width='100%' height='100%'></Map>
+            <Map ref="map" locations={this.state.locations} destination={this.state.destination} stops={this.props.state.stops} initLat={this.props.state.position.coords.latitude} initLon={this.props.state.position.coords.longitude} initZoom={13} width='100%' height='100%'></Map>
           </div>
           <div className={"directions-box" + (this.state.activeView === 'Directions' ? ' visible' : '' )}>
             <DirectionsBox steps={this.state.steps}/>
