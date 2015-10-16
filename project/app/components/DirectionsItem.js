@@ -38,7 +38,7 @@ class StatusItem extends React.Component {
         <div className="status-item clearfix">
           <Card initiallyExpanded={true}>
             <CardHeader
-              title=""
+              title={ sprintf('%s-%s', this.props.step.startTime, this.props.step.endTime) }
               subtitle={ this.props.step.duration.text }
               avatar={<Avatar>{this.props.stepNumber}</Avatar>}
               showExpandableButton={true}>

@@ -176,7 +176,7 @@ class AppRoot extends React.Component {
   getUserMessage(allRoutes, userActiveRoutes) {
     var userMessage = '';
     var now = moment();
-    if (!allRoutes.length) {
+    if (!allRoutes || !allRoutes.length) {
       var base = 'We don\'t seem to have any route data at this time.';
       var reason = 'The AATA might not be providing any data at this time.';
       var remedy = 'Try back a little later.';
@@ -187,7 +187,7 @@ class AppRoot extends React.Component {
         remedy = 'You can either enable allow us to use your location or you can manually enter information here'; // TODO implement interface for configuring route info
       } else if (now.hour() > 0 && now.hour() < 6) {
         reason = 'The buses typically don\'t run at this hour.';
-      } else if (allRoutes.length && !userActiveRoutes.length) {
+      } else if ((allRoutes && allRoutes.length) && !userActiveRoutes.length) {
         reason = 'Buses are running, but there are none running at nearby stops.';
 
         // TODO Implement a way for user to add routes or wider radius
@@ -214,6 +214,31 @@ class AppRoot extends React.Component {
         if (routes && routes.length === 1) {
           var route = routes[0];
           var steps = route.legs[0].steps;
+          var formatStr = 'h:mma';
+          _(steps).each(function(step, idx) {
+            if (step.travel_mode === 'TRANSIT') {
+              if (idx >= 1) {
+                var previousStep = steps[idx - 1];
+                var departureTime = moment(step.transit.departure_time.value.getTime());
+                var durationMs = previousStep.duration.value * 1000;
+                previousStep.startTime = departureTime.clone().subtract(durationMs, 'ms').format(formatStr);
+                previousStep.endTime = step.transit.departure_time.text;
+
+                step.startTime = step.transit.departure_time.text;
+                step.endTime = step.transit.arrival_time.text;
+              }
+            }
+            if (idx === steps.length - 1) {
+              if (steps.length === 1) {
+                step.startTime = moment().format(formatStr);
+                step.endTime = moment().add(step.duration.value, 'seconds').format(formatStr);
+              } else {
+                var previousStep = steps[idx - 1];
+                step.startTime = previousStep.endTime;
+                step.endTime = moment(previousStep.endTime, formatStr).add(step.duration.value, 'seconds').format(formatStr);
+              }
+            }
+          });
           var userRoutes = _(steps).chain()
                                     .map(function(step) {
                                       if (step.travel_mode === 'TRANSIT') {
@@ -249,6 +274,8 @@ class AppRoot extends React.Component {
       this.setState({ routeList: _(routeList).sortBy(function(route) { return parseInt(route.routeAbbr); }) });
     }.bind(this));
     //window.localStorage.setItem('greeted', true);
+    // XXX Hack to remove hamburger toggle for now
+    document.querySelector('.hamburger-toggle').parentElement.parentElement.remove();
   }
 
   render() {
@@ -269,6 +296,7 @@ class AppRoot extends React.Component {
           title="Ann Arbus"
           style={{ position: 'relative' }} /* XXX used to get stacking to work. warning, may affect mobile scroll smoothness! */
           onLeftIconButtonTouchTap={this.showLeftNav}
+          iconClassNameLeft="hamburger-toggle"
           iconElementRight={<FlatButton onClick={this.viewToggleClick} label={this.state.label}/>} />
         <LeftNav
           onChange={this._onLeftNavChange}
@@ -287,7 +315,9 @@ class AppRoot extends React.Component {
           openImmediately={window.localStorage.getItem('greeted') ? false : true}
           modal={this.state.modal}>
           <p>{this.state.warningMessage}</p>
-          <p>This site can be used to quickly find information about buses near you.</p>
+          <p>This site can be used to quickly find information about buses and bus stops near you.</p>
+          <p>To use it, simply drag the destination marker and directions will be plotted for you.
+              You can then view the written out directions by clicking "Show Directions" in the upper-right hand corner.</p>
         </Dialog>
         <Dialog
           title="Settings"
@@ -313,7 +343,7 @@ class AppRoot extends React.Component {
         </Dialog>
         <main>
           <div className={"map-box" + (this.state.activeView === 'Map' ? ' visible' : '')}>
-            <Map ref="map" locations={this.state.locations} destination={this.state.destination} stops={this.props.state.stops} initLat={this.props.state.position.coords.latitude} initLon={this.props.state.position.coords.longitude} initZoom={13} width='100%' height='100%'></Map>
+            <Map ref="map" locations={this.state.locations} destination={this.state.destination} stops={this.props.state.stops} initLat={this.state.position.coords.latitude} initLon={this.state.position.coords.longitude} initZoom={13} width='100%' height='100%'></Map>
           </div>
           <div className={"directions-box" + (this.state.activeView === 'Directions' ? ' visible' : '' )}>
             <DirectionsBox steps={this.state.steps}/>

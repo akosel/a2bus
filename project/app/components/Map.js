@@ -118,8 +118,9 @@ class Map extends React.Component {
         position: currentLocation,
         map: map,
         label: {
-          fontSize: '12px',
-          text: '\u25B6',
+          fontSize: '18px',
+          fontFamily: 'ModernPictograms',
+          text: '>',
         },
         draggable: true,
         title: 'Current Location'

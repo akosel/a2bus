@@ -13,7 +13,9 @@ venv: requirements.txt
 
 dist: gulpfile.js
 	mkdir -p /home/aaronjkosel/projects/a2bus/dist/icons
+	mkdir -p /home/aaronjkosel/projects/a2bus/dist/fonts
 	cp /home/aaronjkosel/projects/a2bus/project/client/icons/* /home/aaronjkosel/projects/a2bus/dist/icons
+	cp /home/aaronjkosel/projects/a2bus/project/client/fonts/* /home/aaronjkosel/projects/a2bus/dist/fonts
 	gulp build
 
 install: dist/bundle.js dist/stylesheet.css
