@@ -273,7 +273,7 @@ class AppRoot extends React.Component {
     api.getRouteNames(function(routeList) {
       this.setState({ routeList: _(routeList).sortBy(function(route) { return parseInt(route.routeAbbr); }) });
     }.bind(this));
-    //window.localStorage.setItem('greeted', true);
+    window.localStorage.setItem('greeted', true);
     // XXX Hack to remove hamburger toggle for now
     document.querySelector('.hamburger-toggle').parentElement.parentElement.remove();
   }
