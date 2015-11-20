@@ -1,6 +1,0 @@
-* Incorporate bus lateness to Google expected departure time
-* Find way of determining which bus on a route is nearest to a stop
-  * After that, incorporate stop time into stop color
-* Better position watching on user (do not constantly redraw, but give user feedback
-  about where they are)
-* Write a README

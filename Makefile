@@ -1,5 +1,6 @@
 # Requires node, python, virtualenv, and gulp (globally installed via npm)
 # Should add targets for those at some point
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))
 
 all: node_modules venv dist
 
@@ -12,14 +13,14 @@ venv: requirements.txt
 	venv/bin/pip install python-geohash
 
 dist: gulpfile.js
-	mkdir -p /home/aaronjkosel/projects/a2bus/dist/icons
-	mkdir -p /home/aaronjkosel/projects/a2bus/dist/fonts
-	cp /home/aaronjkosel/projects/a2bus/project/client/icons/* /home/aaronjkosel/projects/a2bus/dist/icons
-	cp /home/aaronjkosel/projects/a2bus/project/client/fonts/* /home/aaronjkosel/projects/a2bus/dist/fonts
+	mkdir -p $(TOP)dist/icons
+	mkdir -p $(TOP)dist/fonts
+	cp $(TOP)project/client/icons/* $(TOP)dist/icons
+	cp $(TOP)project/client/fonts/* $(TOP)dist/fonts
 	gulp build
 
 install: dist/bundle.js dist/stylesheet.css
-	cp -r /home/aaronjkosel/projects/a2bus /var/local
+	cp -r $(TOP) /var/local
 
 clean:
 	rm -rf venv
